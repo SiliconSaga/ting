@@ -1,0 +1,21 @@
+{# src/ting/templates/base.html #}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Ting{% endblock %} — Parent Advocacy</title>
+<link rel="stylesheet" href="/static/css/ting.css">
+<script src="/static/htmx.min.js" defer></script>
+<script src="/static/alpine.min.js" defer></script>
+{% if goatcounter_site_code %}
+<script data-goatcounter="https://{{ goatcounter_site_code }}.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+{% endif %}
+</head>
+<body>
+<header><a href="/" class="logo">Ting</a></header>
+<main>{% block main %}{% endblock %}</main>
+<footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Public summary</a></footer>
+</body>
+</html>

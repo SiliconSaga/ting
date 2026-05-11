@@ -1,0 +1,12 @@
+{# src/ting/templates/public/landing.html #}
+{% extends "base.html" %}
+{% block title %}Enter your code{% endblock %}
+{% block main %}
+<h1>Welcome</h1>
+<p>Enter the code from your envelope (or scan the QR).</p>
+<form action="/r/" method="post">
+  <input name="code" placeholder="MPE-XK7M-N3PQ" autocomplete="off" autocapitalize="characters" required>
+  <button type="submit">Continue</button>
+</form>
+<p class="muted">No accounts, no email. Your code is your only identifier. See <a href="/privacy">privacy</a>.</p>
+{% endblock %}

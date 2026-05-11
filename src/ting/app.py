@@ -1,16 +1,23 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
+from .config import get_settings
+from .routes.public import router as public_router
 
 
 def create_app() -> FastAPI:
-    from .config import get_settings  # deferred so tests can monkeypatch before calling
-
-    settings = get_settings()  # noqa: F841 – used for future lifespan/middleware config
+    settings = get_settings()  # noqa: F841
     app = FastAPI(title="ting", version="0.1.0")
+    static_dir = Path(__file__).parent / "static"
+    static_dir.mkdir(exist_ok=True)
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     @app.get("/healthz")
-    def healthz() -> dict[str, str]:
+    def healthz():
         return {"status": "ok"}
 
+    app.include_router(public_router)
     return app
 
 
