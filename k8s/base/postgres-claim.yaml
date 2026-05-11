@@ -1,0 +1,15 @@
+apiVersion: database.example.org/v1alpha1
+kind: PostgreSQLInstance
+metadata:
+  name: ting-pg
+  namespace: ting
+spec:
+  parameters:
+    storageSize: 5Gi
+    version: "15"
+    replicas: 1
+    databaseName: ting
+  compositionSelector:
+    matchLabels:
+      provider: percona
+      service: postgresql

@@ -1,0 +1,15 @@
+# Overlay overrides issuerRef and dnsNames per tier.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ting-cert
+  namespace: ting
+spec:
+  secretName: ting-tls
+  privateKey:
+    rotationPolicy: Always
+  issuerRef:
+    name: letsencrypt-gateway-staging
+    kind: ClusterIssuer
+  dnsNames:
+  - ting.cmdbee.org

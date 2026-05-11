@@ -1,0 +1,9 @@
+apiVersion: mimir.siliconsaga.org/v1alpha1
+kind: ValkeyCluster
+metadata:
+  name: ting-valkey
+  namespace: ting
+spec:
+  parameters:
+    replicas: 1
+    storageSize: 1Gi
