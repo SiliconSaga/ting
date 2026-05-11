@@ -1,0 +1,27 @@
+/* src/ting/static/css/ting.css */
+:root { --fg: #1a1a1a; --bg: #fafafa; --muted: #666; --accent: #2e7d32; --border: #d4d4d4; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; color: var(--fg); background: var(--bg); margin: 0; }
+header, main, footer { max-width: 720px; margin: 0 auto; padding: 1rem; }
+header { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-weight: 700; text-decoration: none; color: var(--fg); font-size: 1.5rem; }
+footer { color: var(--muted); font-size: 0.9rem; }
+h1, h2, h3 { line-height: 1.25; }
+button, input[type=submit] { background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; font-size: 1rem; border-radius: 6px; cursor: pointer; }
+input[type=text], input:not([type]) { padding: 0.5rem; font-size: 1rem; border: 1px solid var(--border); border-radius: 6px; width: 100%; max-width: 360px; }
+.muted { color: var(--muted); }
+.bar { background: var(--border); border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
+.bar-fill { background: var(--accent); height: 100%; }
+.question { border: 1px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; background: white; }
+.rank-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 1rem; margin: 0.25rem 0; cursor: grab; user-select: none; }
+.nps-scale { display: flex; gap: 4px; flex-wrap: wrap; }
+.nps-scale label { flex: 1; min-width: 38px; padding: 0.5rem 0; text-align: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+.nps-scale input { display: none; }
+.nps-scale input:checked + span { background: var(--accent); color: white; }
+.likert-scale { display: flex; gap: 4px; }
+.likert-scale label { flex: 1; padding: 0.5rem; text-align: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+.likert-scale input { display: none; }
+.likert-scale input:checked + span { background: var(--accent); color: white; }
+@media print {
+  header, footer, form, .no-print { display: none; }
+}
