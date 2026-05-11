@@ -26,5 +26,20 @@ def dev() -> None:
     )
 
 
+@app.command()
+def migrate(direction: str = typer.Argument("up", help="up|down|head")) -> None:
+    """Run Alembic migrations."""
+    from alembic.config import Config
+    from alembic import command
+
+    cfg = Config("alembic.ini")
+    if direction in ("up", "head"):
+        command.upgrade(cfg, "head")
+    elif direction == "down":
+        command.downgrade(cfg, "-1")
+    else:
+        raise typer.BadParameter("direction must be up|down|head")
+
+
 if __name__ == "__main__":
     app()
