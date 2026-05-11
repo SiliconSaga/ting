@@ -1,0 +1,58 @@
+{# src/ting/templates/summary/index.html #}
+{% extends "base.html" %}
+{% block title %}Public Summary{% endblock %}
+{% block main %}
+<h1>Ting — {{ data.cohort }}</h1>
+{% if data.error == 'slice-too-small' %}
+<p class="muted">Slice too small to display (n={{ data.n }}, floor={{ data.floor }}). Pick a broader filter.</p>
+{% else %}
+<p class="muted">{{ data.n_respondents }} respondents</p>
+
+<section>
+  <h2>Priorities</h2>
+  {% for q in data.priorities %}
+    <h3>{{ q.prompt }} <span class="muted">(n={{ q.n }})</span></h3>
+    {% for bar in q.bars %}
+      <div><strong>{{ bar.slug }}</strong> ({{ bar.score }})</div>
+      <div class="bar"><div class="bar-fill" style="width: {{ bar.normalized }}%"></div></div>
+    {% endfor %}
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Trust in governance</h2>
+  {% for n in data.nps %}
+    <div>
+      <strong>{{ n.subject }}</strong> — NPS {{ '%+.0f' | format(n.nps) }} (n={{ n.n }};
+      {{ n.promoters }} promoters / {{ n.passives }} passives / {{ n.detractors }} detractors)
+    </div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Agreement</h2>
+  {% for k in data.likert %}
+    <div>
+      <strong>{{ k.statement }}</strong> — mean {{ '%.1f' | format(k.mean) }}, {{ '%.0f' | format(k.agree_pct) }}% agree (n={{ k.n }})
+    </div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Pledges</h2>
+  {% for p in data.pledges %}
+    <div>
+      <strong>{{ p.title }}</strong> — ${{ '%.0f' | format(p.dollars_per_month) }}/mo +
+      {{ '%.0f' | format(p.hours_per_week) }} hrs/wk (n={{ p.n }})
+    </div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Top endorsed comments</h2>
+  {% for c in data.top_comments %}
+    <blockquote>"{{ c.body }}" — {{ c.endorsements }}× (<em>{{ c.proposal_slug }}</em>)</blockquote>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

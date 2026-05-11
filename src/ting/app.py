@@ -5,6 +5,7 @@ from pathlib import Path
 from .config import get_settings
 from .routes.public import router as public_router
 from .routes.survey import router as survey_router
+from .routes.summary import router as summary_router
 
 
 def create_app() -> FastAPI:
@@ -20,6 +21,7 @@ def create_app() -> FastAPI:
 
     app.include_router(public_router)
     app.include_router(survey_router)
+    app.include_router(summary_router)
     return app
 
 

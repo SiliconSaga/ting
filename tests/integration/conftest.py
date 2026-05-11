@@ -21,6 +21,13 @@ def settings_env(monkeypatch, postgres_url):
     get_engine.cache_clear()
     _session_factory.cache_clear()
     get_valkey.cache_clear()
+    # Flush rate-limit and session keys so tests don't bleed into each other
+    import redis
+    vk = redis.from_url("redis://localhost:6379/0", decode_responses=True)
+    for pattern in ("rl:*", "sess:*", "survey:*", "summary:*"):
+        keys = vk.keys(pattern)
+        if keys:
+            vk.delete(*keys)
     yield
     get_settings.cache_clear()
     get_engine.cache_clear()
