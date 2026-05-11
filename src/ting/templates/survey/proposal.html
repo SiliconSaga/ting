@@ -1,0 +1,44 @@
+{# src/ting/templates/survey/proposal.html #}
+{% extends "base.html" %}
+{% block title %}{{ proposal.title }}{% endblock %}
+{% block main %}
+<h1>{{ proposal.title }}</h1>
+<p>{{ proposal.body }}</p>
+
+<h2>Comments</h2>
+{% for c in comments %}
+  <div class="comment" id="c-{{ c.comment_id }}">
+    <p>{{ c.body }}</p>
+    <button hx-post="/comment/{{ c.comment_id }}/endorse" hx-swap="outerHTML"
+            class="{% if c.comment_id in my_endorsements %}endorsed{% endif %}">
+      {% if c.comment_id in my_endorsements %}Endorsed{% else %}Endorse{% endif %}
+    </button>
+  </div>
+{% else %}
+  <p class="muted">No comments yet.</p>
+{% endfor %}
+
+<h2>Add a comment</h2>
+{% if comment_count >= 5 %}
+  <p class="muted">You've reached the comment cap for this code. Use endorsements to amplify
+    others' comments rather than re-posting.</p>
+{% else %}
+  <form hx-post="/proposal/{{ proposal.slug }}/comment" hx-swap="afterbegin" hx-target=".comment-list">
+    <p class="muted">First please read the comments above. Then:</p>
+    <label><input type="checkbox" name="confirm_read" value="true" required> I've read existing comments.</label>
+    <textarea name="body" required rows="3" placeholder="What would you say?"></textarea>
+    <button type="submit">Post comment</button>
+  </form>
+{% endif %}
+
+<h2>Your pledge</h2>
+<form hx-post="/proposal/{{ proposal.slug }}/pledge">
+  <label>$/month <input type="number" name="amount_dollars" min="0" step="1"
+    value="{{ existing_pledge.amount_dollars if existing_pledge else 0 }}"></label>
+  <label>hrs/week <input type="number" name="hours_per_week" min="0" step="0.5"
+    value="{{ existing_pledge.hours_per_week if existing_pledge else 0 }}"></label>
+  <button type="submit">Save pledge</button>
+</form>
+
+<p><a href="/survey">Back to survey</a></p>
+{% endblock %}

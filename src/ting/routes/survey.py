@@ -1,17 +1,18 @@
 # src/ting/routes/survey.py
 from datetime import datetime, UTC
+from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from ..auth import resolve_session, clear_session
 from ..db import session_scope
-from ..models import Cohort, Code, Question, Response, MetricsEvent
+from ..models import Cohort, Code, Question, Response, MetricsEvent, Proposal, Comment, Endorsement, Pledge
 from ..valkey import get_valkey
 from ..ratelimit import allow_write
 from ..config import get_settings
@@ -129,3 +130,100 @@ def logout(request: Request) -> HTMLResponse:
     resp = HTMLResponse('<a href="/">Signed out. Back to start</a>')
     resp.delete_cookie("ting_session")
     return resp
+
+
+@router.get("/proposal/{slug}", response_class=HTMLResponse)
+def proposal_detail(slug: str, request: Request) -> HTMLResponse:
+    code_id = _require_code(request)
+    with session_scope() as s:
+        p = s.scalar(select(Proposal).where(Proposal.slug == slug))
+        if p is None:
+            raise HTTPException(404)
+        comments = list(s.scalars(
+            select(Comment).where(Comment.proposal_id == p.proposal_id, Comment.hidden_at.is_(None))
+            .order_by(Comment.created_at.desc())
+        ))
+        my_endorsements = {
+            e.comment_id for e in s.scalars(
+                select(Endorsement).where(Endorsement.code_id == code_id)
+            )
+        }
+        existing_pledge = s.scalar(
+            select(Pledge).where(Pledge.code_id == code_id, Pledge.proposal_id == p.proposal_id)
+        )
+        comment_count = s.scalar(
+            select(func.count(Comment.comment_id)).where(Comment.author_code_id == code_id)
+        ) or 0
+    return TEMPLATES.TemplateResponse(
+        "survey/proposal.html",
+        _ctx(request, proposal=p, comments=comments, my_endorsements=my_endorsements,
+             existing_pledge=existing_pledge, comment_count=comment_count),
+    )
+
+
+@router.post("/proposal/{slug}/comment")
+async def post_comment(slug: str, request: Request, body: str = Form(...), confirm_read: bool = Form(False)) -> JSONResponse:
+    code_id = _require_code(request)
+    if not allow_write(str(code_id)):
+        raise HTTPException(429)
+    if not confirm_read:
+        raise HTTPException(400, "must confirm you've read existing comments")
+    if not body.strip():
+        raise HTTPException(400, "empty body")
+
+    s_cfg = get_settings()
+    with session_scope() as s:
+        p = s.scalar(select(Proposal).where(Proposal.slug == slug))
+        if p is None:
+            raise HTTPException(404)
+        cnt = s.scalar(
+            select(func.count(Comment.comment_id)).where(Comment.author_code_id == code_id)
+        ) or 0
+        if cnt >= s_cfg.max_comments_per_code:
+            raise HTTPException(403, f"comment cap reached ({s_cfg.max_comments_per_code})")
+        s.add(Comment(proposal_id=p.proposal_id, author_code_id=code_id, body=body.strip()))
+        s.add(MetricsEvent(event="comment_posted", code_id=code_id))
+    return JSONResponse({"ok": True})
+
+
+@router.post("/comment/{comment_id}/endorse")
+def toggle_endorse(comment_id: UUID, request: Request) -> JSONResponse:
+    code_id = _require_code(request)
+    if not allow_write(str(code_id)):
+        raise HTTPException(429)
+    with session_scope() as s:
+        existing = s.scalar(
+            select(Endorsement).where(Endorsement.code_id == code_id, Endorsement.comment_id == comment_id)
+        )
+        if existing is None:
+            s.add(Endorsement(code_id=code_id, comment_id=comment_id))
+            s.add(MetricsEvent(event="endorsement_toggled", code_id=code_id))
+            return JSONResponse({"endorsed": True})
+        else:
+            s.delete(existing)
+            return JSONResponse({"endorsed": False})
+
+
+@router.post("/proposal/{slug}/pledge")
+async def post_pledge(slug: str, request: Request,
+                      amount_dollars: Decimal = Form(0), hours_per_week: Decimal = Form(0)) -> JSONResponse:
+    code_id = _require_code(request)
+    if not allow_write(str(code_id)):
+        raise HTTPException(429)
+    if amount_dollars < 0 or hours_per_week < 0:
+        raise HTTPException(400, "non-negative values only")
+    with session_scope() as s:
+        p = s.scalar(select(Proposal).where(Proposal.slug == slug))
+        if p is None:
+            raise HTTPException(404)
+        stmt = pg_insert(Pledge).values(
+            code_id=code_id, proposal_id=p.proposal_id,
+            amount_dollars=amount_dollars, hours_per_week=hours_per_week,
+        ).on_conflict_do_update(
+            index_elements=["code_id", "proposal_id"],
+            set_={"amount_dollars": amount_dollars, "hours_per_week": hours_per_week,
+                  "updated_at": datetime.now(UTC)},
+        )
+        s.execute(stmt)
+        s.add(MetricsEvent(event="pledge_added", code_id=code_id))
+    return JSONResponse({"ok": True})
