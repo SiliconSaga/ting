@@ -1,0 +1,55 @@
+[project]
+name = "ting"
+version = "0.1.0"
+description = "Parent advocacy pilot — structured input, anonymous code-based auth"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.5",
+    "uvicorn[standard]==0.32.1",
+    "jinja2==3.1.4",
+    "sqlalchemy==2.0.36",
+    "psycopg[binary]==3.2.3",
+    "alembic==1.14.0",
+    "pydantic==2.10.3",
+    "pydantic-settings==2.7.0",
+    "typer==0.15.1",
+    "redis==5.2.1",
+    "qrcode[pil]==8.0",
+    "pyyaml==6.0.2",
+    "python-multipart==0.0.20",
+    "itsdangerous==2.2.0",
+    "httpx==0.28.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+    "pytest-asyncio==0.25.0",
+    "testcontainers[postgres]==4.9.0",
+    "ruff==0.8.4",
+    "mypy==1.13.0",
+    "types-pyyaml==6.0.12.20240917",
+]
+
+[project.scripts]
+ting = "ting.cli:app"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
