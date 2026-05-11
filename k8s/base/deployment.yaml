@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ting
+  namespace: ting
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: ting}
+  template:
+    metadata:
+      labels: {app: ting}
+    spec:
+      containers:
+      - name: ting
+        image: ghcr.io/siliconsaga/ting:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: TING_ENVIRONMENT
+          valueFrom: {configMapKeyRef: {name: ting-config, key: environment}}
+        - name: TING_BASE_URL
+          valueFrom: {configMapKeyRef: {name: ting-config, key: base_url}}
+        - name: TING_DATABASE_URL
+          valueFrom: {secretKeyRef: {name: ting-secrets, key: database_url}}
+        - name: TING_VALKEY_URL
+          valueFrom: {secretKeyRef: {name: ting-secrets, key: valkey_url}}
+        - name: TING_SESSION_SECRET
+          valueFrom: {secretKeyRef: {name: ting-secrets, key: session_secret}}
+        - name: TING_GOATCOUNTER_SITE_CODE
+          valueFrom: {configMapKeyRef: {name: ting-config, key: goatcounter_site_code, optional: true}}
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8000}
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet: {path: /healthz, port: 8000}
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        resources:
+          requests: {cpu: 100m, memory: 128Mi}
+          limits: {cpu: 250m, memory: 256Mi}
