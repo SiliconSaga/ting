@@ -16,10 +16,13 @@ def settings_env(monkeypatch, postgres_url):
     monkeypatch.setenv("TING_ENVIRONMENT", "test")
     from ting.config import get_settings
     from ting.db import get_engine, _session_factory
+    from ting.valkey import get_valkey
     get_settings.cache_clear()
     get_engine.cache_clear()
     _session_factory.cache_clear()
+    get_valkey.cache_clear()
     yield
     get_settings.cache_clear()
     get_engine.cache_clear()
     _session_factory.cache_clear()
+    get_valkey.cache_clear()
