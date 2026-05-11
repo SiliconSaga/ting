@@ -1,0 +1,33 @@
+# .github/workflows/ci.yml
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ting
+          POSTGRES_PASSWORD: ting
+          POSTGRES_DB: ting
+        ports: ['5432:5432']
+        options: --health-cmd="pg_isready -U ting" --health-interval=5s --health-timeout=5s --health-retries=10
+      valkey:
+        image: valkey/valkey:7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd="valkey-cli ping" --health-interval=5s --health-timeout=5s --health-retries=10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with: {python-version: '3.12'}
+    - run: pip install --upgrade pip && pip install -e '.[dev]'
+    - run: ruff check src/ tests/
+    - env:
+        TING_DATABASE_URL: postgresql+psycopg://ting:ting@localhost:5432/ting
+        TING_VALKEY_URL: redis://localhost:6379/0
+        TING_SESSION_SECRET: ${{ secrets.GITHUB_TOKEN }}-padded-to-32-chars-abc
+      run: pytest tests/unit tests/integration -v
