@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ting-local
+resources:
+- ../../base
+patches:
+- target:
+    kind: ConfigMap
+    name: ting-config
+  patch: |
+    - op: replace
+      path: /data/environment
+      value: dev
+    - op: replace
+      path: /data/base_url
+      value: http://ting.local
+- target:
+    kind: HTTPRoute
+    name: ting
+  patch: |
+    - op: replace
+      path: /spec/hostnames/0
+      value: ting.local
+- target:
+    kind: Certificate
+    name: ting-cert
+  patch: |
+    - op: replace
+      path: /spec/issuerRef/name
+      value: selfsigned
+    - op: replace
+      path: /spec/dnsNames/0
+      value: ting.local
