@@ -1,0 +1,17 @@
+{# src/ting/templates/survey/_ranking.html #}
+{% set ans = existing.get(q.question_id, {}) %}
+{% set current_order = ans.get('order') or q.payload.get('proposal_slugs', []) %}
+<form hx-post="/respond/{{ q.slug }}" hx-trigger="reorder, submit">
+  <ul x-data="{order: {{ current_order | tojson }}}"
+      x-init="$nextTick(() => new Sortable($el, {
+        animation: 150, onEnd: () => {
+          order = [...$el.children].map(li => li.dataset.slug);
+          $el.closest('form').dispatchEvent(new Event('reorder'));
+        }
+      }))">
+    {% for slug in current_order %}
+      <li class="rank-item" data-slug="{{ slug }}">{{ slug }}</li>
+    {% endfor %}
+  </ul>
+  <input type="hidden" name="order" :value="order.join(',')">
+</form>

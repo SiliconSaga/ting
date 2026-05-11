@@ -1,0 +1,12 @@
+{# src/ting/templates/survey/_nps.html #}
+{% set ans = existing.get(q.question_id, {}) %}
+{% set current = ans.get('score') %}
+<p class="muted">{{ q.payload.subject }} — 0 = not at all, 10 = extremely likely</p>
+<form hx-post="/respond/{{ q.slug }}" hx-trigger="change" class="nps-scale">
+  {% for v in range(0, 11) %}
+    <label>
+      <input type="radio" name="score" value="{{ v }}" {% if current == v %}checked{% endif %}>
+      <span>{{ v }}</span>
+    </label>
+  {% endfor %}
+</form>

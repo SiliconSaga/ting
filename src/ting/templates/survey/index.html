@@ -1,0 +1,22 @@
+{# src/ting/templates/survey/index.html #}
+{% extends "base.html" %}
+{% block title %}Survey{% endblock %}
+{% block main %}
+<h1>Your input</h1>
+<p class="muted">Answer what you'd like. Your latest answer always wins; you can come back and revise.</p>
+
+{% for q in questions %}
+  <div class="question">
+    <h3>{{ q.prompt }}</h3>
+    {% if q.type == 'ranking' %}{% include 'survey/_ranking.html' %}
+    {% elif q.type == 'nps' %}{% include 'survey/_nps.html' %}
+    {% elif q.type == 'likert' %}{% include 'survey/_likert.html' %}
+    {% endif %}
+  </div>
+{% endfor %}
+
+<button hx-post="/survey/complete" hx-swap="outerHTML">Mark complete</button>
+<form action="/logout" method="post" style="display:inline">
+  <button type="submit" class="muted">Sign out</button>
+</form>
+{% endblock %}

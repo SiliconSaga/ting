@@ -66,7 +66,7 @@ def redeem(request: Request, code_str: str, src: str = "manual") -> RedirectResp
     resp.set_cookie(
         "ting_session", sid,
         httponly=True, samesite="lax",
-        secure=settings.environment != "dev",
+        secure=settings.environment not in ("dev", "test"),
         max_age=24 * 3600,
     )
     return resp
