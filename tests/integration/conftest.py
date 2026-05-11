@@ -1,9 +1,23 @@
+import os
+
 import pytest
 from testcontainers.postgres import PostgresContainer
 
 
 @pytest.fixture(scope="session")
 def postgres_url():
+    """Return a Postgres connection URL for the test session.
+
+    In CI the runner provides a service container and exports
+    TING_DATABASE_URL before pytest starts.  When that variable is
+    already set we reuse it directly so testcontainers never tries to
+    spin up a second container.  Locally (no env var) we launch one via
+    testcontainers as before.
+    """
+    pre_set = os.environ.get("TING_DATABASE_URL")
+    if pre_set:
+        yield pre_set
+        return
     with PostgresContainer("postgres:16-alpine") as pg:
         yield pg.get_connection_url().replace("postgresql+psycopg2://", "postgresql+psycopg://")
 
