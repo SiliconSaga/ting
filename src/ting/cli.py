@@ -16,15 +16,14 @@ def healthcheck() -> None:
 
 
 @app.command()
-def dev() -> None:
-    """Boot the app via uvicorn against dev-tier services (hot reload)."""
-    import subprocess
-    import sys
-
-    subprocess.run(
-        [sys.executable, "-m", "uvicorn", "ting.app:app", "--reload", "--port", "8000"],
-        check=True,
-    )
+def dev(
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8000, "--port"),
+    reload: bool = typer.Option(True, "--reload/--no-reload"),
+) -> None:
+    """Boot uvicorn with hot reload for local development."""
+    import uvicorn
+    uvicorn.run("ting.app:app", host=host, port=port, reload=reload)
 
 
 @app.command()
@@ -108,6 +107,36 @@ def cohort(action: str, name: str) -> None:
         typer.echo(f"retired cohort {name}")
     else:
         raise typer.BadParameter(f"unknown cohort action: {action}")
+
+
+@app.command()
+def report(
+    cohort: str = typer.Option(..., "--cohort"),
+    out: Path = typer.Option(Path("summary.html"), "--out"),
+    base_url: str = typer.Option("http://localhost:8000", "--base-url"),
+) -> None:
+    """Save the printable /summary page as HTML (then browser-print to PDF)."""
+    import httpx
+    r = httpx.get(f"{base_url.rstrip('/')}/summary?cohort={cohort}&print=true", timeout=30)
+    r.raise_for_status()
+    out.write_text(r.text)
+    typer.echo(f"wrote {out}")
+
+
+bulletins_app = typer.Typer(help="Admin broadcast bulletins")
+app.add_typer(bulletins_app, name="bulletin")
+
+
+@bulletins_app.command("post")
+def bulletin_post(
+    body: str = typer.Option(..., "--body"),
+    posted_by: str = typer.Option("admin", "--as"),
+) -> None:
+    from .db import session_scope
+    from .models import Bulletin
+    with session_scope() as s:
+        s.add(Bulletin(body=body, posted_by=posted_by))
+    typer.echo("bulletin posted")
 
 
 if __name__ == "__main__":
