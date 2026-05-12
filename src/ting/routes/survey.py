@@ -37,8 +37,40 @@ def _ctx(request: Request, **extra) -> dict:
     return {"request": request, "goatcounter_site_code": s.goatcounter_site_code, **extra}
 
 
+def _surveys_for_code(s, cohort_id: UUID, code_id: UUID) -> list[dict]:
+    """Build a list of survey-summary dicts for the survey-picker page."""
+    rows = list(s.scalars(
+        select(Survey).where(Survey.cohort_id == cohort_id).order_by(Survey.display_order)
+    ))
+    answered = {
+        qid for (qid,) in s.execute(
+            select(Response.question_id).where(Response.code_id == code_id)
+        ).all()
+    }
+    out = []
+    for sv in rows:
+        questions = list(s.scalars(
+            select(Question).where(
+                Question.survey_id == sv.survey_id,
+                Question.display_order.is_not(None),
+            )
+        ))
+        total = len(questions)
+        done = sum(1 for q in questions if q.question_id in answered)
+        out.append({
+            "slug": sv.slug,
+            "title": sv.title,
+            "intro": sv.intro,
+            "display_order": sv.display_order,
+            "total": total,
+            "answered": done,
+        })
+    return out
+
+
 @router.get("/survey", response_class=HTMLResponse)
-def survey_index(request: Request) -> HTMLResponse:
+def survey_list(request: Request) -> HTMLResponse:
+    """Picker: list of surveys available to this code, with progress per survey."""
     code_id = _require_code(request)
     with session_scope() as s:
         code = s.get(Code, code_id)
@@ -47,33 +79,59 @@ def survey_index(request: Request) -> HTMLResponse:
         cohort = s.get(Cohort, code.cohort_id)
         if cohort is None or cohort.retired_at is not None:
             raise HTTPException(410, "cohort retired")
-        # Render all questions across all surveys, ordered by (survey.display_order, question.display_order)
-        surveys = list(s.scalars(
-            select(Survey)
-            .where(Survey.cohort_id == cohort.cohort_id)
-            .order_by(Survey.display_order)
+        surveys = _surveys_for_code(s, cohort.cohort_id, code_id)
+        cohort_name = cohort.name
+
+    return TEMPLATES.TemplateResponse(
+        "survey/list.html",
+        _ctx(request, surveys=surveys, cohort_name=cohort_name),
+    )
+
+
+@router.get("/survey/{survey_slug}", response_class=HTMLResponse)
+def survey_show(survey_slug: str, request: Request) -> HTMLResponse:
+    """Render the questions of one specific survey."""
+    code_id = _require_code(request)
+    with session_scope() as s:
+        code = s.get(Code, code_id)
+        if code is None:
+            raise HTTPException(404)
+        cohort = s.get(Cohort, code.cohort_id)
+        if cohort is None or cohort.retired_at is not None:
+            raise HTTPException(410, "cohort retired")
+        survey = s.scalar(
+            select(Survey).where(
+                Survey.cohort_id == cohort.cohort_id,
+                Survey.slug == survey_slug,
+            )
+        )
+        if survey is None:
+            raise HTTPException(404, "survey not found in this cohort")
+        questions = list(s.scalars(
+            select(Question)
+            .where(Question.survey_id == survey.survey_id, Question.display_order.is_not(None))
+            .order_by(Question.display_order)
         ))
-        questions: list[Question] = []
-        for sv in surveys:
-            qs = list(s.scalars(
-                select(Question)
-                .where(Question.survey_id == sv.survey_id, Question.display_order.is_not(None))
-                .order_by(Question.display_order)
-            ))
-            questions.extend(qs)
         existing = {r.question_id: r.payload for r in s.scalars(
             select(Response).where(Response.code_id == code_id)
         )}
+        nav_surveys = _surveys_for_code(s, cohort.cohort_id, code_id)
+        survey_data = {"slug": survey.slug, "title": survey.title, "intro": survey.intro}
 
-    # Stash survey_started in Valkey for duration tracking
     vk = get_valkey()
     started_key = f"survey:{code_id}:started"
     if not vk.exists(started_key):
         vk.setex(started_key, 24 * 3600, datetime.now(UTC).isoformat())
 
     return TEMPLATES.TemplateResponse(
-        "survey/index.html",
-        _ctx(request, questions=questions, existing=existing, code=code),
+        "survey/show.html",
+        _ctx(
+            request,
+            survey=survey_data,
+            questions=questions,
+            existing=existing,
+            nav_surveys=nav_surveys,
+        ),
     )
 
 

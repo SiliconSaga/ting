@@ -19,9 +19,9 @@ def test_load_example_seed():
     with session_scope() as s:
         assert s.query(School).filter_by(school_code="MPE").count() == 1
         assert s.query(Cohort).filter_by(name="MPE-2026-spring-pilot").count() == 1
-        assert s.query(Survey).count() == 1
-        assert s.query(Proposal).count() == 2
-        assert s.query(Question).count() == 3
+        assert s.query(Survey).count() == 2
+        assert s.query(Proposal).count() == 4
+        assert s.query(Question).count() == 9
         assert s.query(Bulletin).count() == 1
 
 
@@ -32,9 +32,9 @@ def test_load_seed_idempotent():
         # Cohort + proposals + surveys + questions deduped by slug/name; bulletins append.
         assert s.query(School).filter_by(school_code="MPE").count() == 1
         assert s.query(Cohort).filter_by(name="MPE-2026-spring-pilot").count() == 1
-        assert s.query(Survey).count() == 1
-        assert s.query(Proposal).count() == 2
-        assert s.query(Question).count() == 3
+        assert s.query(Survey).count() == 2
+        assert s.query(Proposal).count() == 4
+        assert s.query(Question).count() == 9
         assert s.query(Bulletin).count() == 2  # appended
 
 

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ survey.title }}{% endblock %}
+{% block main %}
+
+{% if nav_surveys|length > 1 %}
+<nav class="survey-nav muted">
+  {% for sv in nav_surveys %}
+    {% if sv.slug == survey.slug %}
+      <strong>{{ sv.title }}</strong>
+    {% else %}
+      <a href="/survey/{{ sv.slug }}">{{ sv.title }}</a>
+    {% endif %}
+    <small>({{ sv.answered }}/{{ sv.total }})</small>{% if not loop.last %} · {% endif %}
+  {% endfor %}
+</nav>
+{% endif %}
+
+<h1>{{ survey.title }}</h1>
+{% if survey.intro %}<p class="muted">{{ survey.intro }}</p>{% endif %}
+
+{% for q in questions %}
+  <div class="question">
+    <h3>{{ q.prompt }}</h3>
+    {% if q.type == 'ranking' %}{% include 'survey/_ranking.html' %}
+    {% elif q.type == 'nps' %}{% include 'survey/_nps.html' %}
+    {% elif q.type == 'likert' %}{% include 'survey/_likert.html' %}
+    {% endif %}
+  </div>
+{% endfor %}
+
+<p class="muted">Your answers save automatically. <a href="/survey">← Back to all surveys</a> · <a href="/summary">Public summary</a></p>
+{% endblock %}

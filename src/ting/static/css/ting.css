@@ -26,6 +26,20 @@ code { background: #eee; padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.
 .save-indicator[data-state="saved"]::before { content: "Saved \2713"; color: var(--accent); }
 .save-indicator[data-state="error"]::before { content: "Couldn't save \2014 try again"; color: #c33; }
 
+/* === Survey list (picker) === */
+.survey-list { display: grid; gap: 0.75rem; margin: 1rem 0; }
+.survey-card { display: block; padding: 1rem 1.25rem; background: white; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
+.survey-card:hover { border-color: var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); }
+.survey-card h3 { margin: 0 0 0.25rem 0; }
+.survey-card .progress { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem; }
+.survey-card .progress .bar { flex: 1; height: 8px; }
+
+/* === Survey + summary nav strips === */
+.survey-nav, .summary-nav { margin: 0 0 1rem 0; padding: 0.5rem 0.75rem; background: white; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
+.summary-nav .nav-cohort { margin: 0.25rem 0; }
+.survey-nav a, .summary-nav a { color: var(--accent); text-decoration: none; }
+.survey-nav a:hover, .summary-nav a:hover { text-decoration: underline; }
+
 /* === Public summary widgets === */
 .widget-block { margin: 0.5rem 0 1.5rem 0; }
 

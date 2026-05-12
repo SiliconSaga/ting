@@ -2,6 +2,25 @@
 {% extends "base.html" %}
 {% block title %}Public Summary{% endblock %}
 {% block main %}
+
+{% if nav and nav|length %}
+<nav class="summary-nav muted">
+  {% for c in nav %}
+    <div class="nav-cohort">
+      <strong>{{ c.school_code }}{{ '%02d' | format(c.batch_number) }}</strong>
+      <span class="muted">— {{ c.name }}</span>:
+      {% for sv in c.surveys %}
+        {% if c.name == selected_cohort and sv.slug == selected_survey %}
+          <strong>{{ sv.title }}</strong>{% if not loop.last %} · {% endif %}
+        {% else %}
+          <a href="/summary?cohort={{ c.name }}&amp;survey={{ sv.slug }}">{{ sv.title }}</a>{% if not loop.last %} · {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endfor %}
+</nav>
+{% endif %}
+
 <h1>Ting — {{ data.cohort }}</h1>
 {% if data.error == 'slice-too-small' %}
 <p class="muted">Slice too small to display (n={{ data.n }}, floor={{ data.floor }}). Pick a broader filter.</p>

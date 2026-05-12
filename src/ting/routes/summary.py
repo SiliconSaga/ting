@@ -20,30 +20,45 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templa
 SUMMARY_CACHE_TTL = 60
 
 
-def _first_survey_slug(cohort_name: str) -> str | None:
+def _available_cohorts_and_surveys() -> tuple[list[dict], str | None]:
+    """Return [{cohort, surveys: [{slug, title}]}, ...] and the default cohort name."""
     with session_scope() as s:
-        cohort = s.scalar(select(Cohort).where(Cohort.name == cohort_name))
-        if cohort is None:
-            return None
-        sv = s.scalar(
-            select(Survey)
-            .where(Survey.cohort_id == cohort.cohort_id)
-            .order_by(Survey.display_order)
-        )
-        return sv.slug if sv else None
+        cohorts = list(s.scalars(
+            select(Cohort).where(Cohort.retired_at.is_(None)).order_by(Cohort.name)
+        ))
+        out = []
+        for c in cohorts:
+            svs = list(s.scalars(
+                select(Survey).where(Survey.cohort_id == c.cohort_id).order_by(Survey.display_order)
+            ))
+            out.append({
+                "name": c.name,
+                "school_code": c.school_code,
+                "batch_number": c.batch_number,
+                "surveys": [{"slug": sv.slug, "title": sv.title} for sv in svs],
+            })
+        default = out[0]["name"] if out else None
+        return out, default
 
 
 @router.get("/summary", response_class=HTMLResponse)
 def summary(
     request: Request,
-    cohort: str = "MPE-2026-spring-pilot",
+    cohort: str | None = None,
     survey: str | None = None,
     grade: int | None = None,
     print: bool = False,
 ) -> HTMLResponse:
-    # Default to first survey in cohort if not provided
+    nav, default_cohort = _available_cohorts_and_surveys()
+
+    if cohort is None:
+        cohort = default_cohort or ""
     if survey is None:
-        survey = _first_survey_slug(cohort) or ""
+        for c in nav:
+            if c["name"] == cohort and c["surveys"]:
+                survey = c["surveys"][0]["slug"]
+                break
+        survey = survey or ""
 
     cache_key = f"summary:{cohort}:{survey}:{grade or 'all'}"
     vk = get_valkey()
@@ -62,5 +77,8 @@ def summary(
             "data": data,
             "print_mode": print,
             "goatcounter_site_code": s.goatcounter_site_code,
+            "nav": nav,
+            "selected_cohort": cohort,
+            "selected_survey": survey,
         },
     )
