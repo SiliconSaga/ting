@@ -3,7 +3,18 @@ kind: Kustomization
 namespace: ting-local
 resources:
 - ../../base
+images:
+- name: ghcr.io/siliconsaga/ting
+  newName: ting
+  newTag: dev
 patches:
+- target:
+    kind: Deployment
+    name: ting
+  patch: |
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
 - target:
     kind: ConfigMap
     name: ting-config
