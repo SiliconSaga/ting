@@ -70,7 +70,7 @@ def summary(
         vk.setex(cache_key, SUMMARY_CACHE_TTL, json.dumps(data, default=str))
 
     s = get_settings()
-    breadcrumb = [{"label": "Public summary"}]
+    breadcrumb = [{"label": "Survey results"}]
     if cohort:
         breadcrumb.append({"label": cohort, "href": f"/cohort/{cohort}"})
 

@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Request
-from fastapi.exceptions import HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse  # noqa: F401
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import get_settings
 from .routes.public import router as public_router
@@ -44,8 +44,8 @@ def create_app() -> FastAPI:
     def healthz():
         return {"status": "ok"}
 
-    @app.exception_handler(HTTPException)
-    async def html_or_json_http_handler(request: Request, exc: HTTPException):
+    @app.exception_handler(StarletteHTTPException)
+    async def html_or_json_http_handler(request: Request, exc: StarletteHTTPException):
         accept = request.headers.get("accept", "")
         # JSON for fetch/HTMX/CLI; HTML for browser top-level navigation.
         if "text/html" not in accept:
