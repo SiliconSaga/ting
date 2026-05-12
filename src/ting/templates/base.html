@@ -29,24 +29,24 @@
 <header>
   <a href="/" class="logo" aria-label="Ting — home">
     <span class="logo-frame"><img src="/static/img/ting-logo.png" alt=""></span>
-    <span class="logo-text">Ting</span>
   </a>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/" class="brand-link">Ting</a>
+    {% if breadcrumb %}
+      {% for seg in breadcrumb %}
+        <span class="sep" aria-hidden="true">›</span>
+        {% if seg.href %}<a href="{{ seg.href }}">{{ seg.label }}</a>
+        {% else %}<span>{{ seg.label }}</span>{% endif %}
+      {% endfor %}
+    {% endif %}
+  </nav>
   <button class="theme-toggle no-print" type="button"
-          onclick="(function(b){var t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ting-theme',t);}catch(e){};b.textContent=t==='light'?'Dark':'Light';})(this)"
+          onclick="(function(b){var cur=document.documentElement.getAttribute('data-theme');var t=cur==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ting-theme',t);}catch(e){};b.querySelector('.theme-icon').textContent=t==='light'?'🌙':'☀';b.querySelector('.theme-label').textContent=t==='light'?'Dark':'Light';})(this)"
           aria-label="Toggle dark or light theme">
-    <span x-data x-init="$el.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? 'Dark' : 'Light'">Theme</span>
+    <span class="theme-icon" aria-hidden="true" x-data x-init="$el.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀'">☀</span>
+    <span class="theme-label" x-data x-init="$el.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? 'Dark' : 'Light'">Light</span>
   </button>
 </header>
-{% if breadcrumb is not none %}
-<nav class="breadcrumb muted" aria-label="Breadcrumb">
-  {% if breadcrumb %}<a href="/">Home</a>{% else %}<span>Home</span>{% endif %}
-  {% for seg in breadcrumb %}
-    <span class="sep">›</span>
-    {% if seg.href %}<a href="{{ seg.href }}">{{ seg.label }}</a>
-    {% else %}<span>{{ seg.label }}</span>{% endif %}
-  {% endfor %}
-</nav>
-{% endif %}
 {% block hero %}{% endblock %}
 <main>{% block main %}{% endblock %}</main>
 <footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Survey results</a></footer>
