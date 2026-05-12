@@ -7,21 +7,23 @@ header { display: flex; justify-content: space-between; align-items: center; }
 .logo { font-weight: 700; text-decoration: none; color: var(--fg); font-size: 1.5rem; }
 footer { color: var(--muted); font-size: 0.9rem; }
 h1, h2, h3 { line-height: 1.25; }
-button, input[type=submit] { background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; font-size: 1rem; border-radius: 6px; cursor: pointer; }
+button, input[type=submit] { background: var(--accent); color: white; border: 1px solid var(--accent); padding: 0.5rem 1rem; font-size: 1rem; border-radius: 6px; cursor: pointer; }
+button.secondary { background: white; color: var(--fg); border: 1px solid var(--border); }
+button.secondary:hover { background: #f0f0f0; }
 input[type=text], input:not([type]) { padding: 0.5rem; font-size: 1rem; border: 1px solid var(--border); border-radius: 6px; width: 100%; max-width: 360px; }
 .muted { color: var(--muted); }
+code { background: #eee; padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.95em; }
 .bar { background: var(--border); border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
 .bar-fill { background: var(--accent); height: 100%; }
 .question { border: 1px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; background: white; }
 .rank-item { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 1rem; margin: 0.25rem 0; cursor: grab; user-select: none; }
-.nps-scale { display: flex; gap: 4px; flex-wrap: wrap; }
-.nps-scale label { flex: 1; min-width: 38px; padding: 0.5rem 0; text-align: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
-.nps-scale input { display: none; }
-.nps-scale input:checked + span { background: var(--accent); color: white; }
-.likert-scale { display: flex; gap: 4px; }
-.likert-scale label { flex: 1; padding: 0.5rem; text-align: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
-.likert-scale input { display: none; }
-.likert-scale input:checked + span { background: var(--accent); color: white; }
+.rank-item:hover { background: #f7f7f7; }
+.nps-scale, .likert-scale { display: flex; gap: 4px; flex-wrap: wrap; }
+.nps-scale label, .likert-scale label { flex: 1; min-width: 38px; padding: 0.5rem 0.25rem; text-align: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: white; transition: background-color 0.1s, color 0.1s, border-color 0.1s; }
+.nps-scale label:hover, .likert-scale label:hover { background: #f0f0f0; }
+.nps-scale input, .likert-scale input { position: absolute; opacity: 0; pointer-events: none; }
+.nps-scale label:has(input:checked), .likert-scale label:has(input:checked) { background: var(--accent); color: white; border-color: var(--accent); font-weight: 600; }
+.nps-scale label:has(input:focus-visible), .likert-scale label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .save-indicator { display: inline-block; margin-top: 0.4rem; font-size: 0.85rem; min-height: 1.1em; }
 .save-indicator[data-state="saved"]::before { content: "Saved \2713"; color: var(--accent); }
 .save-indicator[data-state="error"]::before { content: "Couldn't save \2014 try again"; color: #c33; }
