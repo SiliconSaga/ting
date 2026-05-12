@@ -2,7 +2,8 @@
 {% set ans = existing.get(q.question_id, {}) %}
 {% set current = ans.get('score') %}
 <p>{{ q.payload.statement }}</p>
-<form hx-post="/respond/{{ q.slug }}" hx-trigger="change" class="likert-scale">
+<form hx-post="/respond/{{ q.slug }}" hx-trigger="change" hx-swap="none" class="likert-scale"
+      hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')">
   {% for v, lbl in [(1, 'Strongly disagree'), (2, 'Disagree'), (3, 'Neutral'), (4, 'Agree'), (5, 'Strongly agree')] %}
     <label>
       <input type="radio" name="score" value="{{ v }}" {% if current == v %}checked{% endif %}>
@@ -10,3 +11,4 @@
     </label>
   {% endfor %}
 </form>
+<small class="save-indicator muted" data-state=""></small>

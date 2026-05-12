@@ -22,6 +22,10 @@ input[type=text], input:not([type]) { padding: 0.5rem; font-size: 1rem; border: 
 .likert-scale label { flex: 1; padding: 0.5rem; text-align: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
 .likert-scale input { display: none; }
 .likert-scale input:checked + span { background: var(--accent); color: white; }
+.save-indicator { display: inline-block; margin-top: 0.4rem; font-size: 0.85rem; min-height: 1.1em; }
+.save-indicator[data-state="saved"]::before { content: "Saved \2713"; color: var(--accent); }
+.save-indicator[data-state="error"]::before { content: "Couldn't save \2014 try again"; color: #c33; }
+
 @media print {
   header, footer, form, .no-print { display: none; }
 }

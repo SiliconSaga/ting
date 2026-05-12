@@ -1,7 +1,9 @@
 {# src/ting/templates/survey/_ranking.html #}
 {% set ans = existing.get(q.question_id, {}) %}
 {% set current_order = ans.get('order') or q.payload.get('proposal_slugs', []) %}
-<form hx-post="/respond/{{ q.slug }}" hx-trigger="reorder, submit">
+<p class="muted">Drag the items to reorder. Most important at the top.</p>
+<form hx-post="/respond/{{ q.slug }}" hx-trigger="reorder" hx-swap="none"
+      hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')">
   <ul x-data="{order: {{ current_order | tojson }}}"
       x-init="$nextTick(() => new Sortable($el, {
         animation: 150, onEnd: () => {
@@ -15,3 +17,4 @@
   </ul>
   <input type="hidden" name="order" :value="order.join(',')">
 </form>
+<small class="save-indicator muted" data-state=""></small>

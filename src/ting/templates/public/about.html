@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block main %}
+<h1>About Ting</h1>
+
+<p>
+  Ting is a structured-input parent-advocacy site for one school's worth of
+  families at a time. It exists to channel the energy that already shows up
+  at PTA and Board of Education meetings into a form the board (and
+  everyone else) can read on one page.
+</p>
+
+<h2>What it asks you</h2>
+<p>
+  The survey uses three kinds of question:
+</p>
+<ul>
+  <li><strong>Ranking</strong> — drag the options into order of importance to
+    your family. Aggregated as a <em>Borda count</em> (each rank position
+    contributes points; higher position, more points). This forces real
+    prioritization rather than "everything is important."</li>
+  <li><strong>NPS (Net Promoter Score)</strong> — a 0-to-10 question about
+    governance bodies (BoE, union, PTA, this site itself). Aggregated as
+    <em>% promoters (9-10) minus % detractors (0-6)</em>, giving a score
+    from -100 to +100.</li>
+  <li><strong>Agreement</strong> (Likert scale) — a five-point scale on a
+    specific statement. Aggregated as a distribution histogram and a
+    headline percentage who agree or strongly agree.</li>
+</ul>
+
+<p class="muted">
+  Plain-language explanations of each method with primary academic sources
+  (Borda 1781, Reichheld 2003 NPS, Likert 1932) will be added here before
+  the first board-meeting deliverable.
+</p>
+
+<h2>What it doesn't do</h2>
+<ul>
+  <li>No accounts, no email, no password.</li>
+  <li>No IP addresses are stored on disk.</li>
+  <li>No third-party trackers, no fingerprinting, no cookies beyond a
+    session token.</li>
+  <li>Your most-recent answer always wins; revising is encouraged.</li>
+</ul>
+
+<p><a href="/privacy">Privacy details</a> · <a href="/summary">Public summary</a></p>
+{% endblock %}

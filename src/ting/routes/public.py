@@ -37,6 +37,11 @@ def privacy(request: Request) -> HTMLResponse:
     return TEMPLATES.TemplateResponse("public/privacy.html", _ctx(request))
 
 
+@router.get("/about", response_class=HTMLResponse)
+def about(request: Request) -> HTMLResponse:
+    return TEMPLATES.TemplateResponse("public/about.html", _ctx(request))
+
+
 @router.post("/r/")
 def redeem_form(request: Request, code: str = Form(...)) -> RedirectResponse:
     return RedirectResponse(url=f"/r/{normalize_code(code)}?src=manual", status_code=303)
