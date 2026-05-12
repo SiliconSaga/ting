@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ status_code }} {{ status_label }}{% endblock %}
+{% block main %}
+<div class="error-page">
+  <h1>{{ status_label }}</h1>
+  <p>{{ message }}</p>
+
+  {# Placeholder for a future pastoral / Viking-assembly illustration #}
+  <div class="error-image-slot" aria-hidden="true"></div>
+
+  <p class="muted">
+    <a href="/">← Back to start</a>{% if show_privacy %} · <a href="/privacy">Privacy</a>{% endif %}
+  </p>
+  <p class="muted error-code">Error {{ status_code }}</p>
+</div>
+{% endblock %}

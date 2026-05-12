@@ -25,7 +25,6 @@
         <a href="/summary?cohort={{ active.name }}&amp;survey={{ sv.slug }}">{{ sv.title }}</a>
       {% endif %}
     {% endfor %}
-    {% if nav|length == 1 %}<span class="tab-meta">{{ active.school_code }}{{ '%02d' | format(active.batch_number) }} · {{ active.name }}</span>{% endif %}
   </nav>
   {% endif %}
 {% endif %}

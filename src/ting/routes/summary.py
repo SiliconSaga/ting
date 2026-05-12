@@ -70,6 +70,10 @@ def summary(
         vk.setex(cache_key, SUMMARY_CACHE_TTL, json.dumps(data, default=str))
 
     s = get_settings()
+    breadcrumb = [{"label": "Public summary"}]
+    if cohort:
+        breadcrumb.append({"label": cohort, "href": f"/summary?cohort={cohort}"})
+
     return TEMPLATES.TemplateResponse(
         "summary/index.html",
         {
@@ -80,6 +84,6 @@ def summary(
             "nav": nav,
             "selected_cohort": cohort,
             "selected_survey": survey,
-            "breadcrumb": "Public summary",
+            "breadcrumb": breadcrumb,
         },
     )

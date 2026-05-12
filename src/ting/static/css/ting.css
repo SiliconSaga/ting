@@ -3,8 +3,12 @@
 * { box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; color: var(--fg); background: var(--bg); margin: 0; }
 header, main, footer { max-width: 720px; margin: 0 auto; padding: 1rem; }
-header { display: flex; justify-content: space-between; align-items: center; }
+header { display: flex; justify-content: flex-start; align-items: center; padding-bottom: 0.5rem; }
 .logo { font-weight: 700; text-decoration: none; color: var(--fg); font-size: 1.5rem; }
+.breadcrumb { max-width: 720px; margin: 0 auto; padding: 0 1rem 0.75rem 1rem; font-size: 0.85rem; }
+.breadcrumb a { color: var(--accent); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { margin: 0 0.35rem; color: var(--muted); }
 footer { color: var(--muted); font-size: 0.9rem; }
 h1, h2, h3 { line-height: 1.25; }
 button, input[type=submit] { background: var(--accent); color: white; border: 1px solid var(--accent); padding: 0.5rem 1rem; font-size: 1rem; border-radius: 6px; cursor: pointer; }
@@ -33,9 +37,6 @@ code { background: #eee; padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.
 .survey-card h3 { margin: 0 0 0.25rem 0; }
 .survey-card .progress { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem; }
 .survey-card .progress .bar { flex: 1; height: 8px; }
-
-/* === Breadcrumb in header === */
-.crumb { margin-left: 0.5rem; font-size: 1rem; vertical-align: baseline; }
 
 /* === Underlined tab navigation (used on /survey/<slug> and /summary) === */
 .nav-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin: 0 0 1rem 0; flex-wrap: wrap; align-items: stretch; }
@@ -103,6 +104,13 @@ blockquote.endorsed-comment footer { font-size: 0.85rem; margin-top: 0.25rem; }
 
 .bar { background: var(--border); border-radius: 4px; height: 22px; position: relative; overflow: hidden; }
 .bar-fill { background: var(--accent); height: 100%; transition: width 0.3s ease; }
+
+/* === Error page === */
+.error-page { text-align: center; padding: 2rem 1rem; }
+.error-page h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.error-page p { max-width: 480px; margin: 0.5rem auto; }
+.error-image-slot { min-height: 200px; margin: 1.5rem auto; max-width: 480px; }
+.error-code { margin-top: 2rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; }
 
 @media print {
   header, footer, form, .no-print { display: none; }

@@ -84,7 +84,12 @@ def survey_list(request: Request) -> HTMLResponse:
 
     return TEMPLATES.TemplateResponse(
         "survey/list.html",
-        _ctx(request, surveys=surveys, cohort_name=cohort_name, breadcrumb="Your surveys"),
+        _ctx(
+            request,
+            surveys=surveys,
+            cohort_name=cohort_name,
+            breadcrumb=[{"label": "Your surveys"}],
+        ),
     )
 
 
@@ -131,7 +136,10 @@ def survey_show(survey_slug: str, request: Request) -> HTMLResponse:
             questions=questions,
             existing=existing,
             nav_surveys=nav_surveys,
-            breadcrumb=survey_data["title"],
+            breadcrumb=[
+                {"label": "Your surveys", "href": "/survey"},
+                {"label": survey_data["title"]},
+            ],
         ),
     )
 

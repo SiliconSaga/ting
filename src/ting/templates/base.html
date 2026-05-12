@@ -17,8 +17,17 @@
 <body>
 <header>
   <a href="/" class="logo">Ting</a>
-  {% if breadcrumb %}<span class="crumb muted">› {{ breadcrumb }}</span>{% endif %}
 </header>
+{% if breadcrumb %}
+<nav class="breadcrumb muted" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  {% for seg in breadcrumb %}
+    <span class="sep">›</span>
+    {% if seg.href %}<a href="{{ seg.href }}">{{ seg.label }}</a>
+    {% else %}<span>{{ seg.label }}</span>{% endif %}
+  {% endfor %}
+</nav>
+{% endif %}
 <main>{% block main %}{% endblock %}</main>
 <footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Public summary</a></footer>
 </body>
