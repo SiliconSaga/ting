@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ status_code }} {{ status_label }}{% endblock %}
-{% block main %}
-<div class="error-page">
-  <h1>{{ status_label }}</h1>
-  <p>{{ message }}</p>
-
-  {# Placeholder for a future pastoral / Viking-assembly illustration #}
-  <div class="error-image-slot" aria-hidden="true"></div>
-
-  <p class="muted"><a href="/">← Back to start</a></p>
-  <p class="muted error-code">Error {{ status_code }}</p>
-</div>
+{% block hero %}
+<section class="error-page">
+  <div class="error-card">
+    <h1>{{ status_label }}</h1>
+    <p>{{ message }}</p>
+    <p class="muted" style="margin-top: 1.5rem;"><a href="/">← Back to start</a></p>
+    <p class="muted error-code">Error {{ status_code }}</p>
+  </div>
+</section>
 {% endblock %}
+{% block main %}{% endblock %}

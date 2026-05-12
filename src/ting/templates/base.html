@@ -6,6 +6,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Ting{% endblock %} — Parent Advocacy</title>
 <link rel="stylesheet" href="/static/css/ting.css">
+<link rel="icon" type="image/png" href="/static/img/ting-logo.png">
+{# Theme: set data-theme before paint to avoid a flash of the wrong scheme. #}
+<script>
+(function () {
+  try {
+    var saved = localStorage.getItem('ting-theme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
+})();
+</script>
 <script src="/static/htmx.min.js" defer></script>
 <script src="/static/sortable.min.js" defer></script>
 <script src="/static/alpine.min.js" defer></script>
@@ -16,7 +27,15 @@
 </head>
 <body>
 <header>
-  <a href="/" class="logo">Ting</a>
+  <a href="/" class="logo" aria-label="Ting — home">
+    <span class="logo-frame"><img src="/static/img/ting-logo.png" alt=""></span>
+    <span class="logo-text">Ting</span>
+  </a>
+  <button class="theme-toggle no-print" type="button"
+          onclick="(function(b){var t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ting-theme',t);}catch(e){};b.textContent=t==='light'?'Dark':'Light';})(this)"
+          aria-label="Toggle dark or light theme">
+    <span x-data x-init="$el.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? 'Dark' : 'Light'">Theme</span>
+  </button>
 </header>
 {% if breadcrumb is not none %}
 <nav class="breadcrumb muted" aria-label="Breadcrumb">
@@ -28,6 +47,7 @@
   {% endfor %}
 </nav>
 {% endif %}
+{% block hero %}{% endblock %}
 <main>{% block main %}{% endblock %}</main>
 <footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Survey results</a></footer>
 </body>
