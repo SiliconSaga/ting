@@ -18,9 +18,9 @@
 <header>
   <a href="/" class="logo">Ting</a>
 </header>
-{% if breadcrumb %}
+{% if breadcrumb is not none %}
 <nav class="breadcrumb muted" aria-label="Breadcrumb">
-  <a href="/">Home</a>
+  {% if breadcrumb %}<a href="/">Home</a>{% else %}<span>Home</span>{% endif %}
   {% for seg in breadcrumb %}
     <span class="sep">›</span>
     {% if seg.href %}<a href="{{ seg.href }}">{{ seg.label }}</a>

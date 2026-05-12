@@ -1,0 +1,18 @@
+{# Survey tabs partial. Rendered initially in show.html and re-rendered
+   out-of-band by /respond so the (answered/total) counts stay live. #}
+{% if nav_surveys|length > 1 %}
+<nav id="survey-tabs" class="nav-tabs" aria-label="Surveys in this cohort"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <a href="/survey" title="Back to the picker">← All</a>
+  {% for sv in nav_surveys %}
+    {% if sv.slug == survey_slug %}
+      <strong class="active">{{ sv.title }} <small>({{ sv.answered }}/{{ sv.total }})</small></strong>
+    {% else %}
+      <a href="/survey/{{ sv.slug }}">{{ sv.title }} <small>({{ sv.answered }}/{{ sv.total }})</small></a>
+    {% endif %}
+  {% endfor %}
+</nav>
+{% else %}
+<nav id="survey-tabs"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <p><a href="/survey" class="muted">← Back to survey list</a></p>
+</nav>
+{% endif %}

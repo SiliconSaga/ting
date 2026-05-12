@@ -2,8 +2,8 @@
 {% set ans = existing.get(q.question_id, {}) %}
 {% set current_order = ans.get('order') or q.payload.get('proposal_slugs', []) %}
 <p class="muted">Drag the items to reorder. Most important at the top.</p>
-<form hx-post="/respond/{{ q.slug }}" hx-trigger="reorder" hx-swap="none"
-      hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')">
+<form hx-post="/respond/{{ q.slug }}" hx-trigger="reorder, submit" hx-swap="none"
+      hx-on::after-request="this.parentElement.querySelector('.save-indicator').dataset.state = (event.detail.successful ? 'saved' : 'error'); if (event.detail.successful) { const b = this.querySelector('.confirm-default'); if (b) b.remove(); }">
   <ul x-data="{order: {{ current_order | tojson }}}"
       x-init="$nextTick(() => new Sortable($el, {
         animation: 150, onEnd: () => {
@@ -16,5 +16,8 @@
     {% endfor %}
   </ul>
   <input type="hidden" name="order" :value="order.join(',')">
+  {% if not existing.get(q.question_id) %}
+    <button type="submit" class="confirm-default secondary">That order looks right — save it</button>
+  {% endif %}
 </form>
 <small class="save-indicator muted" data-state=""></small>

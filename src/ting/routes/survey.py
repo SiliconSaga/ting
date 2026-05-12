@@ -145,13 +145,15 @@ def survey_show(survey_slug: str, request: Request) -> HTMLResponse:
 
 
 @router.post("/respond/{question_slug}")
-async def respond(question_slug: str, request: Request) -> JSONResponse:
+async def respond(question_slug: str, request: Request) -> HTMLResponse:
     code_id = _require_code(request)
     if not allow_write(str(code_id)):
         raise HTTPException(429, "rate-limited")
 
     form = await request.form()
     payload: dict = {}
+    survey_slug: str | None = None
+    nav_surveys: list[dict] = []
     with session_scope() as s:
         q = s.scalar(select(Question).where(Question.slug == question_slug))
         if q is None:
@@ -182,7 +184,17 @@ async def respond(question_slug: str, request: Request) -> JSONResponse:
         )
         s.execute(stmt)
 
-    return JSONResponse({"ok": True})
+        # Recompute the survey tab strip for an HTMX out-of-band update.
+        survey = s.get(Survey, q.survey_id)
+        if survey is not None:
+            survey_slug = survey.slug
+            nav_surveys = _surveys_for_code(s, survey.cohort_id, code_id)
+
+    # Body content is ignored by hx-swap="none"; the OOB nav update is the payload.
+    return TEMPLATES.TemplateResponse(
+        "survey/_tabs.html",
+        {"request": request, "survey_slug": survey_slug, "nav_surveys": nav_surveys, "oob": True},
+    )
 
 
 @router.post("/survey/complete")

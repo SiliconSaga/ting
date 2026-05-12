@@ -29,7 +29,7 @@ def _ctx(request: Request, **extra) -> dict:
 
 @router.get("/", response_class=HTMLResponse)
 def landing(request: Request) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse("public/landing.html", _ctx(request))
+    return TEMPLATES.TemplateResponse("public/landing.html", _ctx(request, breadcrumb=[]))
 
 
 @router.get("/privacy", response_class=HTMLResponse)
@@ -45,6 +45,53 @@ def about(request: Request) -> HTMLResponse:
     return TEMPLATES.TemplateResponse(
         "public/about.html",
         _ctx(request, breadcrumb=[{"label": "About"}]),
+    )
+
+
+@router.get("/cohort/{cohort_name}", response_class=HTMLResponse)
+def cohort_info(cohort_name: str, request: Request) -> HTMLResponse:
+    """Public-facing context page for a cohort (no code required)."""
+    from sqlalchemy import select
+    from ..db import session_scope
+    from ..models import Cohort, School, Survey
+
+    with session_scope() as s:
+        cohort = s.scalar(select(Cohort).where(Cohort.name == cohort_name))
+        if cohort is None:
+            from fastapi import HTTPException
+            raise HTTPException(404, "cohort not found")
+        school = s.scalar(select(School).where(School.school_code == cohort.school_code))
+        surveys = list(s.scalars(
+            select(Survey).where(Survey.cohort_id == cohort.cohort_id).order_by(Survey.display_order)
+        ))
+        cohort_data = {
+            "name": cohort.name,
+            "description": cohort.description,
+            "school_code": cohort.school_code,
+            "batch_number": cohort.batch_number,
+            "created_at": cohort.created_at,
+            "expires_at": cohort.expires_at,
+            "retired_at": cohort.retired_at,
+        }
+        school_data = {
+            "code": school.school_code,
+            "name": school.name,
+            "district": school.district,
+        } if school else None
+        survey_data = [
+            {"slug": sv.slug, "title": sv.title, "intro": sv.intro}
+            for sv in surveys
+        ]
+
+    return TEMPLATES.TemplateResponse(
+        "public/cohort.html",
+        _ctx(
+            request,
+            cohort=cohort_data,
+            school=school_data,
+            surveys=survey_data,
+            breadcrumb=[{"label": cohort_name}],
+        ),
     )
 
 

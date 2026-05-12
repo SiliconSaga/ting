@@ -2,7 +2,7 @@
 {% block title %}Surveys{% endblock %}
 {% block main %}
 <h1>Your surveys</h1>
-<p class="muted">Cohort: <code>{{ cohort_name }}</code>. Pick a survey to answer or revise.</p>
+<p class="muted">Cohort: <a href="/cohort/{{ cohort_name }}"><code>{{ cohort_name }}</code></a>. Pick a survey to answer or revise.</p>
 
 <div class="survey-list">
   {% for sv in surveys %}

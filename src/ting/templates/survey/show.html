@@ -2,20 +2,7 @@
 {% block title %}{{ survey.title }}{% endblock %}
 {% block main %}
 
-{% if nav_surveys|length > 1 %}
-<nav class="nav-tabs" aria-label="Surveys in this cohort">
-  <a href="/survey" title="Back to the picker">← All</a>
-  {% for sv in nav_surveys %}
-    {% if sv.slug == survey.slug %}
-      <strong class="active">{{ sv.title }} <small>({{ sv.answered }}/{{ sv.total }})</small></strong>
-    {% else %}
-      <a href="/survey/{{ sv.slug }}">{{ sv.title }} <small>({{ sv.answered }}/{{ sv.total }})</small></a>
-    {% endif %}
-  {% endfor %}
-</nav>
-{% else %}
-<p><a href="/survey" class="muted">← Back to survey list</a></p>
-{% endif %}
+{% with survey_slug = survey.slug, oob = false %}{% include 'survey/_tabs.html' %}{% endwith %}
 
 {% if survey.intro %}<p class="muted">{{ survey.intro }}</p>{% endif %}
 
@@ -29,5 +16,6 @@
   </div>
 {% endfor %}
 
-<p class="muted">Your answers save automatically. <a href="/survey">← Back to all surveys</a> · <a href="/summary">Public summary</a></p>
+<p class="muted">Your answers save automatically.</p>
+<p><a href="/survey">← Back to all surveys</a></p>
 {% endblock %}

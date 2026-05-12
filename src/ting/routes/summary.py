@@ -72,7 +72,7 @@ def summary(
     s = get_settings()
     breadcrumb = [{"label": "Public summary"}]
     if cohort:
-        breadcrumb.append({"label": cohort, "href": f"/summary?cohort={cohort}"})
+        breadcrumb.append({"label": cohort, "href": f"/cohort/{cohort}"})
 
     return TEMPLATES.TemplateResponse(
         "summary/index.html",
