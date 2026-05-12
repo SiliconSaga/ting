@@ -15,5 +15,5 @@ class Question(Base):
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     display_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    cohort_id: Mapped[UUID] = mapped_column(ForeignKey("cohorts.cohort_id"), nullable=False)
+    survey_id: Mapped[UUID] = mapped_column(ForeignKey("surveys.survey_id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)

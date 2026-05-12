@@ -4,15 +4,19 @@ from sqlalchemy import select, func
 from ..aggregation import borda, nps as nps_calc, likert_histogram
 from ..db import session_scope
 from ..models import (
-    Cohort, Code, Question, Response, Proposal, Comment, Endorsement, Pledge,
+    Cohort, Code, Survey, Question, Response, Proposal, Comment, Endorsement, Pledge,
 )
 
 
-def build_summary(*, cohort_name: str, grade_filter: int | None = None, n_floor: int = 10) -> dict:
+def build_summary(*, cohort_name: str, survey_slug: str, grade_filter: int | None = None, n_floor: int = 10) -> dict:
     with session_scope() as s:
         cohort = s.scalar(select(Cohort).where(Cohort.name == cohort_name))
         if cohort is None:
             return {"error": "cohort not found"}
+
+        survey = s.scalar(select(Survey).where(Survey.slug == survey_slug))
+        if survey is None:
+            return {"error": "survey not found"}
 
         # Code filter (by grade if specified)
         code_q = select(Code.code_id).where(Code.cohort_id == cohort.cohort_id)
@@ -29,9 +33,11 @@ def build_summary(*, cohort_name: str, grade_filter: int | None = None, n_floor:
             .where(Response.code_id.in_(eligible_code_ids))
         ) or 0
 
-        # Questions grouped by type
+        # Questions belonging to this survey
         questions = list(s.scalars(
-            select(Question).where(Question.cohort_id == cohort.cohort_id).order_by(Question.display_order)
+            select(Question)
+            .where(Question.survey_id == survey.survey_id)
+            .order_by(Question.display_order)
         ))
         priorities = []
         nps_sections = []
@@ -39,13 +45,15 @@ def build_summary(*, cohort_name: str, grade_filter: int | None = None, n_floor:
 
         for q in questions:
             resps = list(s.scalars(
-                select(Response).where(Response.question_id == q.question_id, Response.code_id.in_(eligible_code_ids))
+                select(Response).where(
+                    Response.question_id == q.question_id,
+                    Response.code_id.in_(eligible_code_ids),
+                )
             ))
             if q.type == "ranking":
                 rankings = [r.payload.get("order", []) for r in resps]
                 all_options = q.payload.get("proposal_slugs", [])
                 scores = borda(rankings, all_options=all_options)
-                # Normalize to 0-100
                 max_score = max(scores.values()) if scores else 0
                 bars = [
                     {
@@ -117,6 +125,7 @@ def build_summary(*, cohort_name: str, grade_filter: int | None = None, n_floor:
 
         return {
             "cohort": cohort_name,
+            "survey": survey_slug,
             "n_respondents": int(n_respondents),
             "priorities": priorities,
             "nps": nps_sections,

@@ -17,7 +17,7 @@ def _redeem(client) -> str:
     from ting.services.seed_loader import load_seed
     from ting.services.code_service import generate_codes
     load_seed(Path("seeds/example.yaml"))
-    [code] = generate_codes(cohort_name="example-pilot", count=1, prefix="T")
+    [code] = generate_codes(cohort_name="MPE-2026-spring-pilot", count=1)
     r = client.get(f"/r/{code}", follow_redirects=False)
     assert r.status_code == 303
     return code

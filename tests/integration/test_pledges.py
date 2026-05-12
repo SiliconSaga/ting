@@ -13,7 +13,7 @@ def client(settings_env):
     from ting.services.seed_loader import load_seed
     from ting.services.code_service import generate_codes
     load_seed(Path("seeds/example.yaml"))
-    [code] = generate_codes(cohort_name="example-pilot", count=1, prefix="T")
+    [code] = generate_codes(cohort_name="MPE-2026-spring-pilot", count=1)
     c = TestClient(create_app())
     c.get(f"/r/{code}", follow_redirects=False)
     yield c

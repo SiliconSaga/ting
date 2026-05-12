@@ -12,7 +12,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from ..auth import resolve_session, clear_session
 from ..db import session_scope
-from ..models import Cohort, Code, Question, Response, MetricsEvent, Proposal, Comment, Endorsement, Pledge
+from ..models import Cohort, Code, Survey, Question, Response, MetricsEvent, Proposal, Comment, Endorsement, Pledge
 from ..valkey import get_valkey
 from ..ratelimit import allow_write
 from ..config import get_settings
@@ -47,10 +47,20 @@ def survey_index(request: Request) -> HTMLResponse:
         cohort = s.get(Cohort, code.cohort_id)
         if cohort is None or cohort.retired_at is not None:
             raise HTTPException(410, "cohort retired")
-        questions = list(s.scalars(
-            select(Question).where(Question.cohort_id == cohort.cohort_id, Question.display_order.is_not(None))
-            .order_by(Question.display_order)
+        # Render all questions across all surveys, ordered by (survey.display_order, question.display_order)
+        surveys = list(s.scalars(
+            select(Survey)
+            .where(Survey.cohort_id == cohort.cohort_id)
+            .order_by(Survey.display_order)
         ))
+        questions: list[Question] = []
+        for sv in surveys:
+            qs = list(s.scalars(
+                select(Question)
+                .where(Question.survey_id == sv.survey_id, Question.display_order.is_not(None))
+                .order_by(Question.display_order)
+            ))
+            questions.extend(qs)
         existing = {r.question_id: r.payload for r in s.scalars(
             select(Response).where(Response.code_id == code_id)
         )}

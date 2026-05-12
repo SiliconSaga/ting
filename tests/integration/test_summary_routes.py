@@ -18,7 +18,7 @@ def client(settings_env):
 def test_summary_renders(client):
     r = client.get("/summary")
     assert r.status_code == 200
-    assert "example-pilot" in r.text
+    assert "MPE-2026-spring-pilot" in r.text
     assert "Priorities" in r.text
 
 

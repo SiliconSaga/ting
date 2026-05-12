@@ -12,12 +12,18 @@ from ..db import session_scope
 from ..models import Cohort, Code
 
 
-def generate_codes(*, cohort_name: str, count: int, prefix: str | None = None) -> list[str]:
+def generate_codes(*, cohort_name: str, count: int) -> list[str]:
+    """Generate ``count`` unique access codes for the named cohort.
+
+    The code prefix is derived from the cohort's school_code + batch_number,
+    e.g. school_code="MPE", batch_number=1 → prefix "MPE01".
+    """
     out: list[str] = []
     with session_scope() as s:
         cohort = s.scalar(select(Cohort).where(Cohort.name == cohort_name))
         if cohort is None:
             raise ValueError(f"unknown cohort: {cohort_name}")
+        prefix = f"{cohort.school_code}{cohort.batch_number:02d}"
         existing = {row[0] for row in s.execute(select(Code.code_str)).all()}
         while len(out) < count:
             code_str = generate_code(prefix=prefix)

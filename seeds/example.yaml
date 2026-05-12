@@ -1,7 +1,44 @@
 # seeds/example.yaml — small example cohort for dev tier
+schools:
+  - code: MPE
+    name: Mount Pleasant Elementary
+    district: West Orange School District
+
 cohort:
-  name: example-pilot
-  description: Example cohort shipped with the repo
+  name: MPE-2026-spring-pilot
+  description: First pilot cohort
+  school_code: MPE
+  batch_number: 1
+  expires_at: 2027-08-31T23:59:59Z
+
+surveys:
+  - slug: spring-pilot-general
+    title: General priorities and trust
+    intro: A quick read on how families are feeling.
+    display_order: 1
+    questions:
+      - slug: rank-priorities
+        type: ranking
+        prompt: Rank these in order of importance to your family
+        display_order: 1
+        payload:
+          proposal_slugs: [retain-paras, hvac-maintenance]
+          pick_top_n: null
+          required: true
+
+      - slug: nps-boe
+        type: nps
+        prompt: How likely are you to recommend the Board of Education to other parents?
+        display_order: 2
+        payload:
+          subject: the Board of Education
+
+      - slug: agree-supp-funding
+        type: likert
+        prompt: How strongly do you agree?
+        display_order: 3
+        payload:
+          statement: The school should accept supplemental community funding to retain positions, where legally permitted.
 
 proposals:
   - slug: retain-paras
@@ -12,30 +49,6 @@ proposals:
     title: Address HVAC + facilities deferred maintenance
     body: Address backlog of deferred maintenance.
     status: active
-
-questions:
-  - slug: rank-priorities
-    type: ranking
-    prompt: Rank these in order of importance to your family
-    display_order: 1
-    payload:
-      proposal_slugs: [retain-paras, hvac-maintenance]
-      pick_top_n: null
-      required: true
-
-  - slug: nps-boe
-    type: nps
-    prompt: How likely are you to recommend the Board of Education to other parents?
-    display_order: 2
-    payload:
-      subject: the Board of Education
-
-  - slug: agree-supp-funding
-    type: likert
-    prompt: How strongly do you agree?
-    display_order: 3
-    payload:
-      statement: The school should accept supplemental community funding to retain positions, where legally permitted.
 
 bulletins:
   - body: Welcome to the example pilot. This cohort ships with the repo for dev/test.

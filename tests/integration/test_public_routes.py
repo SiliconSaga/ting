@@ -35,7 +35,7 @@ def test_redeem_happy_path(client):
     from ting.services.seed_loader import load_seed
     from ting.services.code_service import generate_codes
     load_seed(Path("seeds/example.yaml"))
-    codes = generate_codes(cohort_name="example-pilot", count=1, prefix="EX")
+    codes = generate_codes(cohort_name="MPE-2026-spring-pilot", count=1)
     r = client.get(f"/r/{codes[0]}", follow_redirects=False)
     assert r.status_code == 303
     assert "/survey" in r.headers["location"]

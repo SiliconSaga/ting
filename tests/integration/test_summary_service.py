@@ -22,10 +22,16 @@ def _add_code(s, cohort_id, code_str="AAA-BBBB-CCCC", grade=None):
 
 def test_summary_has_sections():
     load_seed(Path("seeds/example.yaml"))
-    summary = build_summary(cohort_name="example-pilot")
+    summary = build_summary(cohort_name="MPE-2026-spring-pilot", survey_slug="spring-pilot-general")
     assert "priorities" in summary  # ranking questions
     assert "nps" in summary
     assert "likert" in summary
     assert "pledges" in summary
     assert "top_comments" in summary
     assert "n_respondents" in summary
+
+
+def test_summary_unknown_survey():
+    load_seed(Path("seeds/example.yaml"))
+    result = build_summary(cohort_name="MPE-2026-spring-pilot", survey_slug="nonexistent-survey")
+    assert result.get("error") == "survey not found"
