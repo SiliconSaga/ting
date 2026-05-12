@@ -19,7 +19,9 @@ def test_create_cohort_and_code():
         code = Code(code_str="TST-AAAA-BBBB", cohort_id=c.cohort_id)
         s.add(code)
     with session_scope() as s:
-        assert s.query(Code).count() == 1
+        # Scope by code_str so the assertion is immune to leftover rows from
+        # other tests' fixtures that share the test database.
+        assert s.query(Code).filter_by(code_str="TST-AAAA-BBBB").count() == 1
 
 
 def test_response_unique_per_code_question():
@@ -34,6 +36,6 @@ def test_response_unique_per_code_question():
         s.add(Response(code_id=code.code_id, question_id=q.question_id, payload={"score": 4}))
     with pytest.raises(IntegrityError):
         with session_scope() as s:
-            code = s.query(Code).one()
-            q = s.query(Question).one()
+            code = s.query(Code).filter_by(code_str="TST-AAAA-BBBB").one()
+            q = s.query(Question).filter_by(slug="q1").one()
             s.add(Response(code_id=code.code_id, question_id=q.question_id, payload={"score": 5}))
