@@ -80,5 +80,6 @@ def summary(
             "nav": nav,
             "selected_cohort": cohort,
             "selected_survey": survey,
+            "breadcrumb": "Public summary",
         },
     )

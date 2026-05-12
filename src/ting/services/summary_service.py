@@ -54,12 +54,18 @@ def build_summary(*, cohort_name: str, survey_slug: str, grade_filter: int | Non
                 rankings = [r.payload.get("order", []) for r in resps]
                 all_options = q.payload.get("proposal_slugs", [])
                 scores = borda(rankings, all_options=all_options)
-                max_score = max(scores.values()) if scores else 0
+                # Normalize to *max possible* Borda points so a 100-bar means
+                # "every voter put this first." Range becomes 0..100 in absolute
+                # terms, exposing real differences between options.
+                n_voters = len(rankings)
+                n_options = len(all_options) if all_options else len(scores)
+                max_possible = n_voters * (n_options - 1) if n_options > 1 else 0
                 bars = [
                     {
                         "slug": slug,
                         "score": score,
-                        "normalized": (score / max_score * 100) if max_score else 0,
+                        "max_possible": max_possible,
+                        "normalized": (score / max_possible * 100) if max_possible else 0,
                     }
                     for slug, score in sorted(scores.items(), key=lambda kv: -kv[1])
                 ]
@@ -73,10 +79,14 @@ def build_summary(*, cohort_name: str, survey_slug: str, grade_filter: int | Non
                 })
             elif q.type == "likert":
                 scores = [r.payload.get("score", 0) for r in resps]
+                hist = likert_histogram(scores)
+                # JSON cache roundtrips dict keys to strings; convert
+                # counts keys now so the template's lookups stay correct.
+                hist["counts"] = {str(k): v for k, v in hist["counts"].items()}
                 likert_sections.append({
                     "prompt": q.prompt, "slug": q.slug,
                     "statement": q.payload.get("statement", ""),
-                    **likert_histogram(scores),
+                    **hist,
                 })
 
         # Pledge totals per proposal

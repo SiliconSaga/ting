@@ -3,19 +3,20 @@
 {% block main %}
 
 {% if nav_surveys|length > 1 %}
-<nav class="survey-nav muted">
+<nav class="nav-tabs" aria-label="Surveys in this cohort">
+  <a href="/survey" title="Back to the picker">← All</a>
   {% for sv in nav_surveys %}
     {% if sv.slug == survey.slug %}
-      <strong>{{ sv.title }}</strong>
+      <strong class="active">{{ sv.title }} <small>({{ sv.answered }}/{{ sv.total }})</small></strong>
     {% else %}
-      <a href="/survey/{{ sv.slug }}">{{ sv.title }}</a>
+      <a href="/survey/{{ sv.slug }}">{{ sv.title }} <small>({{ sv.answered }}/{{ sv.total }})</small></a>
     {% endif %}
-    <small>({{ sv.answered }}/{{ sv.total }})</small>{% if not loop.last %} · {% endif %}
   {% endfor %}
 </nav>
+{% else %}
+<p><a href="/survey" class="muted">← Back to survey list</a></p>
 {% endif %}
 
-<h1>{{ survey.title }}</h1>
 {% if survey.intro %}<p class="muted">{{ survey.intro }}</p>{% endif %}
 
 {% for q in questions %}

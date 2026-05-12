@@ -4,24 +4,31 @@
 {% block main %}
 
 {% if nav and nav|length %}
-<nav class="summary-nav muted">
-  {% for c in nav %}
-    <div class="nav-cohort">
-      <strong>{{ c.school_code }}{{ '%02d' | format(c.batch_number) }}</strong>
-      <span class="muted">— {{ c.name }}</span>:
-      {% for sv in c.surveys %}
-        {% if c.name == selected_cohort and sv.slug == selected_survey %}
-          <strong>{{ sv.title }}</strong>{% if not loop.last %} · {% endif %}
-        {% else %}
-          <a href="/summary?cohort={{ c.name }}&amp;survey={{ sv.slug }}">{{ sv.title }}</a>{% if not loop.last %} · {% endif %}
-        {% endif %}
-      {% endfor %}
-    </div>
-  {% endfor %}
-</nav>
+  {% if nav|length > 1 %}
+  <div class="cohort-row">Cohort:
+    {% for c in nav %}
+      {% if c.name == selected_cohort %}
+        <span class="cohort-pill">{{ c.school_code }}{{ '%02d' | format(c.batch_number) }} — {{ c.name }}</span>
+      {% else %}
+        <a href="/summary?cohort={{ c.name }}">{{ c.school_code }}{{ '%02d' | format(c.batch_number) }} — {{ c.name }}</a>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% set active = (nav | selectattr('name', 'equalto', selected_cohort) | list | first) %}
+  {% if active and active.surveys|length %}
+  <nav class="nav-tabs" aria-label="Surveys in {{ active.name }}">
+    {% for sv in active.surveys %}
+      {% if sv.slug == selected_survey %}
+        <strong class="active">{{ sv.title }}</strong>
+      {% else %}
+        <a href="/summary?cohort={{ active.name }}&amp;survey={{ sv.slug }}">{{ sv.title }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if nav|length == 1 %}<span class="tab-meta">{{ active.school_code }}{{ '%02d' | format(active.batch_number) }} · {{ active.name }}</span>{% endif %}
+  </nav>
+  {% endif %}
 {% endif %}
-
-<h1>Ting — {{ data.cohort }}</h1>
 {% if data.error == 'slice-too-small' %}
 <p class="muted">Slice too small to display (n={{ data.n }}, floor={{ data.floor }}). Pick a broader filter.</p>
 {% else %}
@@ -75,7 +82,7 @@
       <div class="likert-statement">{{ k.statement }}</div>
       <div class="stack-bar">
         {% for v in [1, 2, 3, 4, 5] %}
-          {% set c = k.counts.get(v, 0) %}
+          {% set c = k.counts.get(v|string, k.counts.get(v, 0)) %}
           {% if c %}<div class="seg seg-likert-{{ v }}" style="width: {{ '%.1f' | format(c / total * 100) }}%" title="{{ ['Strongly disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly agree'][v-1] }}: {{ c }}">{{ c }}</div>{% endif %}
         {% endfor %}
       </div>

@@ -15,7 +15,10 @@
 {% endif %}
 </head>
 <body>
-<header><a href="/" class="logo">Ting</a></header>
+<header>
+  <a href="/" class="logo">Ting</a>
+  {% if breadcrumb %}<span class="crumb muted">› {{ breadcrumb }}</span>{% endif %}
+</header>
 <main>{% block main %}{% endblock %}</main>
 <footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Public summary</a></footer>
 </body>

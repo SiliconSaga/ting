@@ -34,12 +34,12 @@ def landing(request: Request) -> HTMLResponse:
 
 @router.get("/privacy", response_class=HTMLResponse)
 def privacy(request: Request) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse("public/privacy.html", _ctx(request))
+    return TEMPLATES.TemplateResponse("public/privacy.html", _ctx(request, breadcrumb="Privacy"))
 
 
 @router.get("/about", response_class=HTMLResponse)
 def about(request: Request) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse("public/about.html", _ctx(request))
+    return TEMPLATES.TemplateResponse("public/about.html", _ctx(request, breadcrumb="About"))
 
 
 @router.post("/r/")
