@@ -15,8 +15,5 @@
   </div>
 {% endfor %}
 
-<button hx-post="/survey/complete" hx-swap="outerHTML">Mark complete</button>
-<form action="/logout" method="post" style="display:inline">
-  <button type="submit" class="secondary">Sign out</button>
-</form>
+<p class="muted">Your answers save automatically as you make them. Come back any time to revise — your most-recent answer always wins.</p>
 {% endblock %}
