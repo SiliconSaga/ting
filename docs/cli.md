@@ -3,18 +3,25 @@
 The `ting` CLI handles all admin operations: schema migrations, seed
 loading, code generation, cohort lifecycle, bulletins, snapshots, and
 the local dev server. It's a Typer app exposed as the `ting`
-console-script (created by `pip install -e '.[dev]'`) and via
-`./scripts/ting <subcommand>` which transparently activates the
-component venv.
+console-script (created by `pip install -e '.[dev]'`).
 
-In a k8s deployment, run via `kubectl exec`:
+## Which tier are you targeting?
 
-```bash
-kubectl --context <CTX> exec -n ting deploy/ting -- ting <subcommand> ...
-```
+The CLI has **no idea which deployment tier it's talking to** — it
+just connects to whatever `TING_DATABASE_URL` + `TING_VALKEY_URL`
+point at. Three common invocation forms, three different databases:
 
-The component `Makefile` wraps the most common invocations — see
-[development.md](development.md) for `make codes`, `make demo`, etc.
+| Form | Target | When to use |
+|---|---|---|
+| **`./scripts/ting <cmd>`** (from this component dir) | Dev tier — your laptop's docker-compose Postgres | Local development; the dev-server flow |
+| **`make codes` / `make demo` / etc.** (from `components/ting/`) | Whatever cluster your kubectl context points at — defaults to `k3d-nordri-test` | Operator commands against a running k8s deploy |
+| **`kubectl exec ... -- ting <cmd>`** | The specific cluster + namespace you pass | Production / staging GKE tiers |
+
+The `./scripts/ting` wrapper has a guard: if you run it without
+`.env` or `TING_*` env vars set, it prints a hint explaining the
+three options. (You're probably hitting that if you got
+`command not found: ting` or a `ValidationError: 3 validation errors
+for Settings`.)
 
 ---
 

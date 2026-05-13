@@ -24,7 +24,10 @@ else) can read on one page.
 
 ## Quickstart (dev tier — no k8s needed)
 
-Requires Docker + Python 3.12+.
+Requires Docker + Python 3.12+. **All commands run from this directory
+(`components/ting/`).** The `./scripts/ting` wrapper targets the *dev
+tier* — a Postgres + Valkey running locally via docker-compose. It's
+a different database than any k8s deploy.
 
 ```bash
 cp .env.example .env
@@ -44,6 +47,24 @@ Open <http://localhost:8000>. Generate a code to log in:
 ```bash
 ./scripts/ting codes generate --cohort MPE-2026-spring-pilot --count 1
 ```
+
+## Adding codes to an already-running k8s deploy
+
+If you're testing against the **local k8s** tier (k3d at `ting.local`),
+codes live in the in-cluster Postgres — not the dev-tier docker-compose
+DB. Use `make codes` (or `kubectl exec`) instead:
+
+```bash
+make codes                        # 3 codes; override with COHORT=... DEMO_COUNT=...
+
+# or explicitly:
+kubectl --context k3d-nordri-test exec -n ting-local deploy/ting \
+  -- ting codes generate --cohort MPE-2026-spring-pilot --count 5
+```
+
+For the GKE tiers (`cmdbee`, `frontstate`) substitute the appropriate
+kubectl context and namespace. See [`docs/cli.md`](docs/cli.md) for
+the full operator reference.
 
 ## Other deploy tiers
 
