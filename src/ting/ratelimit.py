@@ -13,9 +13,13 @@ def ip_hash(ip: str) -> str:
 
 def _bump(key: str, ttl_seconds: int, limit: int) -> bool:
     vk = get_valkey()
+    # Set the TTL only on first creation (NX). Calling EXPIRE on every
+    # hit produces a sliding window — a determined retrier could keep
+    # the key alive but never trip the limit. Fixed window matches the
+    # intent of "N attempts per hour."
     pipe = vk.pipeline()
     pipe.incr(key)
-    pipe.expire(key, ttl_seconds)
+    pipe.expire(key, ttl_seconds, nx=True)
     count, _ = pipe.execute()
     return int(count) <= limit
 
