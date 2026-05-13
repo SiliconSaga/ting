@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ survey.title }}{% endblock %}
+{% block main %}
+
+{% with survey_slug = survey.slug, oob = false %}{% include 'survey/_tabs.html' %}{% endwith %}
+
+{% if survey.intro %}<p class="muted">{{ survey.intro }}</p>{% endif %}
+
+{% for q in questions %}
+  <div class="question">
+    <h3>{{ q.prompt }}</h3>
+    {% if q.type == 'ranking' %}{% include 'survey/_ranking.html' %}
+    {% elif q.type == 'nps' %}{% include 'survey/_nps.html' %}
+    {% elif q.type == 'likert' %}{% include 'survey/_likert.html' %}
+    {% endif %}
+  </div>
+{% endfor %}
+
+<p class="muted">Your answers save automatically.</p>
+<p><a href="/survey">← Back to all surveys</a></p>
+{% endblock %}

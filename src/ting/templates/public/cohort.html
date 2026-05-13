@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ cohort.name }}{% endblock %}
+{% block main %}
+<h1>{{ cohort.name }}</h1>
+
+{% if school %}
+<p>
+  <strong>{{ school.name }}</strong>
+  {% if school.district %}<span class="muted">— {{ school.district }}</span>{% endif %}
+  <br>
+  <span class="muted">Cohort code: <code>{{ cohort.school_code }}{{ '%02d' | format(cohort.batch_number) }}</code></span>
+</p>
+{% endif %}
+
+{% if cohort.description %}<p>{{ cohort.description }}</p>{% endif %}
+
+<h2>Surveys in this cohort</h2>
+<ul class="cohort-surveys">
+{% for sv in surveys %}
+  <li>
+    <strong>{{ sv.title }}</strong>
+    {% if sv.intro %}<br><span class="muted">{{ sv.intro }}</span>{% endif %}
+  </li>
+{% else %}
+  <li class="muted">No surveys are active yet for this cohort.</li>
+{% endfor %}
+</ul>
+
+<h2>About this cohort</h2>
+<p class="muted">
+  <em>Cohort</em> here means one printed batch of code envelopes
+  distributed to families. Every code in this cohort can answer any of
+  the surveys above. Cohorts are scoped to one school and one academic
+  cycle.
+</p>
+{% if cohort.expires_at %}
+<p class="muted">
+  Codes in this cohort can submit new responses through
+  <strong>{{ cohort.expires_at.strftime('%B %-d, %Y') }}</strong>.
+  After that, responses become read-only; new cohorts will print fresh
+  codes for the next cycle.
+</p>
+{% endif %}
+{% if cohort.retired_at %}
+<p class="muted">
+  This cohort has been retired. Responses remain visible on the public
+  summary, but new submissions are no longer accepted.
+</p>
+{% endif %}
+
+<h2>What's next</h2>
+<ul>
+  <li><a href="/summary?cohort={{ cohort.name }}">Survey results</a> — aggregated, anonymous, and public; no code needed.</li>
+  <li><a href="/survey">Survey picker</a> — if you've already entered your code in this browser, jump to your answers.</li>
+  <li><a href="/">Enter a code</a> — start a new session with your code.</li>
+</ul>
+
+{% endblock %}

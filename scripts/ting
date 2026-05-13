@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# scripts/ting — invoke the ting CLI for the LOCAL DEV TIER (docker-compose
+# Postgres on this machine). Run from anywhere; auto-cd's to component root
+# and activates the venv if present.
+#
+# For the LOCAL K8S TIER (k3d/Rancher Desktop with Mimir) or any deployed
+# pod, use `make codes` / `make demo` / `make ...` from this directory, OR
+# `kubectl exec -n <ns> deploy/ting -- ting ...` directly. The local CLI
+# talks to a different database than the in-cluster pod.
+
+set -euo pipefail
+
+here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+root="$(cd -- "$here/.." && pwd)"
+
+# Helpful pre-check: are we set up to talk to the dev-tier Postgres?
+# Pydantic-settings will give a less-friendly error if neither .env nor
+# the env vars are present.
+if [[ ! -f "$root/.env" && -z "${TING_DATABASE_URL:-}" ]]; then
+    cat >&2 <<EOF
+ting CLI: no dev-tier configuration found.
+
+This script targets the LOCAL DEV TIER (docker-compose Postgres on
+this machine). To set it up:
+
+  cd $root
+  cp .env.example .env
+  docker compose up -d
+  python3.12 -m venv .venv && source .venv/bin/activate
+  pip install -e '.[dev]'
+  ./scripts/ting migrate
+  ./scripts/ting seed seeds/example.yaml
+
+If you instead wanted to add codes to the LOCAL K8S DEPLOY (k3d-nordri-test
+running at http://ting.local), use:
+
+  cd $root && make codes
+
+  or:
+
+  kubectl --context k3d-nordri-test exec -n ting-local deploy/ting \\
+    -- ting codes generate --cohort MPE-2026-spring-pilot --count 3
+
+See docs/cli.md for the full reference.
+EOF
+    exit 2
+fi
+
+if [[ -d "$root/.venv" ]]; then
+    # shellcheck disable=SC1091
+    source "$root/.venv/bin/activate"
+fi
+
+cd "$root"
+exec python -m ting.cli "$@"

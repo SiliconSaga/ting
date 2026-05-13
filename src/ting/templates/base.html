@@ -1,0 +1,54 @@
+{# src/ting/templates/base.html #}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Ting{% endblock %} — Parent Advocacy</title>
+<link rel="stylesheet" href="/static/css/ting.css">
+<link rel="icon" type="image/png" href="/static/img/ting-logo.png">
+{# Theme: set data-theme before paint to avoid a flash of the wrong scheme. #}
+<script>
+(function () {
+  try {
+    var saved = localStorage.getItem('ting-theme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
+})();
+</script>
+<script src="/static/htmx.min.js" defer></script>
+<script src="/static/sortable.min.js" defer></script>
+<script src="/static/alpine.min.js" defer></script>
+{% if goatcounter_site_code %}
+<script data-goatcounter="https://{{ goatcounter_site_code }}.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+{% endif %}
+</head>
+<body>
+<header>
+  <a href="/" class="logo" aria-label="Ting — home">
+    <span class="logo-frame"><img src="/static/img/ting-logo.png" alt=""></span>
+  </a>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/" class="brand-link">Ting</a>
+    {% if breadcrumb %}
+      {% for seg in breadcrumb %}
+        <span class="sep" aria-hidden="true">›</span>
+        {% if seg.href %}<a href="{{ seg.href }}">{{ seg.label }}</a>
+        {% else %}<span>{{ seg.label }}</span>{% endif %}
+      {% endfor %}
+    {% endif %}
+  </nav>
+  <button class="theme-toggle no-print" type="button"
+          onclick="(function(b){var cur=document.documentElement.getAttribute('data-theme');var t=cur==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ting-theme',t);}catch(e){};b.querySelector('.theme-icon').textContent=t==='light'?'🌙':'☀';b.querySelector('.theme-label').textContent=t==='light'?'Dark':'Light';})(this)"
+          aria-label="Toggle dark or light theme">
+    <span class="theme-icon" aria-hidden="true" x-data x-init="$el.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀'">☀</span>
+    <span class="theme-label" x-data x-init="$el.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? 'Dark' : 'Light'">Light</span>
+  </button>
+</header>
+{% block hero %}{% endblock %}
+<main>{% block main %}{% endblock %}</main>
+<footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Survey results</a></footer>
+</body>
+</html>

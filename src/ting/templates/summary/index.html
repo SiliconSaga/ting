@@ -1,0 +1,137 @@
+{# src/ting/templates/summary/index.html #}
+{% extends "base.html" %}
+{% block title %}Survey results{% endblock %}
+{% block main %}
+
+{% if nav and nav|length %}
+  {% if nav|length > 1 %}
+  <div class="cohort-row">Cohort:
+    {% for c in nav %}
+      {% if c.name == selected_cohort %}
+        <span class="cohort-pill">{{ c.school_code }}{{ '%02d' | format(c.batch_number) }} — {{ c.name }}</span>
+      {% else %}
+        <a href="/summary?cohort={{ c.name | urlencode }}">{{ c.school_code }}{{ '%02d' | format(c.batch_number) }} — {{ c.name }}</a>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% set active = (nav | selectattr('name', 'equalto', selected_cohort) | list | first) %}
+  {% if active and active.surveys|length %}
+  <nav class="nav-tabs" aria-label="Surveys in {{ active.name }}">
+    {% for sv in active.surveys %}
+      {% if sv.slug == selected_survey %}
+        <strong class="active">{{ sv.title }}</strong>
+      {% else %}
+        <a href="/summary?cohort={{ active.name | urlencode }}&amp;survey={{ sv.slug | urlencode }}">{{ sv.title }}</a>
+      {% endif %}
+    {% endfor %}
+  </nav>
+  {% endif %}
+{% endif %}
+{% if data.error == 'slice-too-small' %}
+<p class="muted">Slice too small to display (n={{ data.n }}, floor={{ data.floor }}). Pick a broader filter.</p>
+{% else %}
+<p class="muted">{{ data.n_respondents }} respondents</p>
+
+<section>
+  <h2>Priorities</h2>
+  {% for q in data.priorities %}
+    <h3>{{ q.prompt }} <span class="muted">(n={{ q.n }})</span></h3>
+    <div class="widget-block">
+      {% for bar in q.bars %}
+        <div class="priority-row">
+          <div class="priority-label">{{ bar.slug }}</div>
+          <div class="bar"><div class="bar-fill" style="width: {{ '%.1f' | format(bar.normalized) }}%"></div></div>
+          <div class="priority-score muted">{{ '%.0f' | format(bar.normalized) }}<small> / 100</small></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Trust in governance</h2>
+  <p class="muted">Net Promoter Score: % promoters (9-10) minus % detractors (0-6). Range -100 to +100.</p>
+  {% for n in data.nps %}
+    {% set total = n.n or 1 %}
+    {% set d_pct = (n.detractors / total * 100) %}
+    {% set p_pct = (n.passives / total * 100) %}
+    {% set pr_pct = (n.promoters / total * 100) %}
+    <div class="nps-row">
+      <div class="nps-label">{{ n.subject }}</div>
+      <div class="stack-bar" title="{{ n.detractors }} det / {{ n.passives }} pass / {{ n.promoters }} prom">
+        {% if n.detractors %}<div class="seg seg-detractor" style="width: {{ '%.1f' | format(d_pct) }}%">{{ n.detractors }}</div>{% endif %}
+        {% if n.passives %}<div class="seg seg-passive" style="width: {{ '%.1f' | format(p_pct) }}%">{{ n.passives }}</div>{% endif %}
+        {% if n.promoters %}<div class="seg seg-promoter" style="width: {{ '%.1f' | format(pr_pct) }}%">{{ n.promoters }}</div>{% endif %}
+      </div>
+      <div class="nps-score">
+        <strong class="{% if n.nps >= 0 %}positive{% else %}negative{% endif %}">{{ '%+.0f' | format(n.nps) }}</strong>
+        <small class="muted">n={{ n.n }}</small>
+      </div>
+    </div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Agreement</h2>
+  <p class="muted">5-point scale, strongly disagree to strongly agree.</p>
+  {% for k in data.likert %}
+    {% set total = k.n or 1 %}
+    <div class="likert-row">
+      <div class="likert-statement">{{ k.statement }}</div>
+      <div class="stack-bar">
+        {% for v in [1, 2, 3, 4, 5] %}
+          {% set c = k.counts.get(v|string, k.counts.get(v, 0)) %}
+          {% if c %}<div class="seg seg-likert-{{ v }}" style="width: {{ '%.1f' | format(c / total * 100) }}%" title="{{ ['Strongly disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly agree'][v-1] }}: {{ c }}">{{ c }}</div>{% endif %}
+        {% endfor %}
+      </div>
+      <div class="likert-headline muted">
+        {{ '%.0f' | format(k.agree_pct) }}% agree · mean {{ '%.1f' | format(k.mean) }} · n={{ k.n }}
+      </div>
+    </div>
+  {% endfor %}
+  <div class="legend muted">
+    <span class="legend-swatch seg-likert-1"></span> Strongly disagree
+    <span class="legend-swatch seg-likert-2"></span> Disagree
+    <span class="legend-swatch seg-likert-3"></span> Neutral
+    <span class="legend-swatch seg-likert-4"></span> Agree
+    <span class="legend-swatch seg-likert-5"></span> Strongly agree
+  </div>
+</section>
+
+<section>
+  <h2>Pledges</h2>
+  {% if data.pledges %}
+    <table class="pledges">
+      <thead><tr><th>Proposal</th><th>Dollars/mo</th><th>Hours/wk</th><th>n</th></tr></thead>
+      <tbody>
+        {% for p in data.pledges %}
+        <tr>
+          <td>{{ p.title }}</td>
+          <td class="num">${{ '%.0f' | format(p.dollars_per_month) }}</td>
+          <td class="num">{{ '%.0f' | format(p.hours_per_week) }}</td>
+          <td class="num muted">{{ p.n }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No pledges yet.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Top endorsed comments</h2>
+  {% if data.top_comments %}
+    {% for c in data.top_comments %}
+      <blockquote class="endorsed-comment">
+        <p>"{{ c.body }}"</p>
+        <footer class="muted">{{ c.endorsements }} endorsement{{ '' if c.endorsements == 1 else 's' }} · <em>{{ c.proposal_slug }}</em></footer>
+      </blockquote>
+    {% endfor %}
+  {% else %}
+    <p class="muted">No comments yet.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

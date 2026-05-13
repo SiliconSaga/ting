@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Surveys{% endblock %}
+{% block main %}
+<h1>Your surveys</h1>
+<p class="muted">Cohort: <a href="/cohort/{{ cohort_name }}"><code>{{ cohort_name }}</code></a>. Pick a survey to answer or revise.</p>
+
+<div class="survey-list">
+  {% for sv in surveys %}
+    <a class="survey-card" href="/survey/{{ sv.slug }}">
+      <h3>{{ sv.title }}</h3>
+      {% if sv.intro %}<p class="muted">{{ sv.intro }}</p>{% endif %}
+      <div class="progress">
+        <span>{{ sv.answered }} of {{ sv.total }} answered</span>
+        <div class="bar"><div class="bar-fill" style="width: {{ (sv.answered / sv.total * 100) if sv.total else 0 }}%"></div></div>
+      </div>
+    </a>
+  {% else %}
+    <p class="muted">No surveys are active for this cohort yet.</p>
+  {% endfor %}
+</div>
+
+<p class="muted">Your answers save automatically as you make them. Come back any time to revise — your most-recent answer always wins.</p>
+{% endblock %}

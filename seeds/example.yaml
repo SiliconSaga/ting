@@ -1,0 +1,110 @@
+# seeds/example.yaml — small example cohort for dev tier
+schools:
+  - code: MPE
+    name: Mount Pleasant Elementary
+    district: West Orange School District
+
+cohort:
+  name: MPE-2026-spring-pilot
+  description: First pilot cohort
+  school_code: MPE
+  batch_number: 1
+  expires_at: 2027-08-31T23:59:59Z
+
+surveys:
+  - slug: spring-pilot-general
+    title: General priorities and trust
+    intro: A quick read on how families are feeling about the school year overall.
+    display_order: 1
+    questions:
+      - slug: rank-priorities
+        type: ranking
+        prompt: Rank these in order of importance to your family
+        display_order: 1
+        payload:
+          proposal_slugs: [retain-paras, hvac-maintenance, security-coordinator, cooperative-purchasing]
+          pick_top_n: null
+          required: true
+
+      - slug: nps-boe
+        type: nps
+        prompt: How likely are you to recommend the Board of Education to other parents?
+        display_order: 2
+        payload:
+          subject: the Board of Education
+
+      - slug: nps-union
+        type: nps
+        prompt: How likely are you to recommend the local teachers' union to other parents?
+        display_order: 3
+        payload:
+          subject: the local teachers union
+
+      - slug: nps-pta
+        type: nps
+        prompt: How likely are you to recommend the PTA to other parents?
+        display_order: 4
+        payload:
+          subject: the PTA
+
+      - slug: nps-ting
+        type: nps
+        prompt: How likely are you to recommend this site to other parents?
+        display_order: 5
+        payload:
+          subject: this site
+
+      - slug: agree-supp-funding
+        type: likert
+        prompt: How strongly do you agree?
+        display_order: 6
+        payload:
+          statement: The school should accept supplemental community funding to retain positions, where legally permitted.
+
+  - slug: spring-safety-reaction
+    title: Safety + security reaction
+    intro: A short mini-survey on the security coordinator position.
+    display_order: 2
+    questions:
+      - slug: agree-keep-security
+        type: likert
+        prompt: How strongly do you agree?
+        display_order: 1
+        payload:
+          statement: Mount Pleasant should retain a dedicated security coordinator position next year.
+
+      - slug: agree-pta-fund-security
+        type: likert
+        prompt: How strongly do you agree?
+        display_order: 2
+        payload:
+          statement: The PTA should help fund the security coordinator role if district funds run short.
+
+      - slug: nps-district-safety
+        type: nps
+        prompt: How likely are you to recommend the district's overall safety approach to other parents?
+        display_order: 3
+        payload:
+          subject: the district's safety approach
+
+proposals:
+  - slug: retain-paras
+    title: Retain paraprofessionals in-house
+    body: Retain in-house staffing instead of outsourcing.
+    status: active
+  - slug: hvac-maintenance
+    title: Address HVAC + facilities deferred maintenance
+    body: Address backlog of deferred maintenance.
+    status: active
+  - slug: security-coordinator
+    title: Restore the school security coordinator position
+    body: Retain or restore the dedicated security coordinator role.
+    status: active
+  - slug: cooperative-purchasing
+    title: Join cooperative purchasing programs
+    body: Reduce per-school costs by participating in regional buying coops.
+    status: active
+
+bulletins:
+  - body: Welcome to the example pilot. This cohort ships with the repo for dev/test.
+    posted_by: example-admin
