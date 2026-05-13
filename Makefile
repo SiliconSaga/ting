@@ -71,6 +71,18 @@ cycle: deploy bust-cache ## Quick redeploy + bust cache (no data wipe).
 
 full: deploy reseed ## Deploy fresh image + reset all data + 30 demo respondents.
 
+# --- Remote-cluster (GKE) deploys --------------------------------------------
+#
+# These target a real cluster (default: whatever your current kubectl context
+# is). They're separate from the localk8s `make deploy` flow above, which
+# k3d-imports the locally-built image; the remote flows pull from GHCR.
+
+bootstrap-cmdbee: ## One-time setup of the cmdbee GKE tier. Run once per cluster.
+	bash scripts/bootstrap-cmdbee.sh
+
+deploy-cmdbee: ## Recurring deploy to the cmdbee GKE tier (after image lands at ghcr).
+	bash scripts/deploy-cmdbee.sh
+
 # --- Observability -----------------------------------------------------------
 
 logs: ## Tail the ting pod logs.
@@ -87,4 +99,4 @@ shell: ## Drop into a python shell inside the ting pod.
 psql: ## Drop into psql via pgbouncer (uses the in-cluster credentials).
 	kubectl --context $(KCTX) exec -it -n $(NS) deploy/ting -- python -c "from ting.config import get_settings; import os; s=get_settings(); os.execvp('psql', ['psql', s.database_url.replace('postgresql+psycopg://', 'postgresql://')])"
 
-.PHONY: help test lint build import deploy wipe seed demo bust-cache reseed codes cycle full logs smoke shell psql
+.PHONY: help test lint build import deploy wipe seed demo bust-cache reseed codes cycle full logs smoke shell psql bootstrap-cmdbee deploy-cmdbee
