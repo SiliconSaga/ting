@@ -1,7 +1,9 @@
 from datetime import datetime
 from uuid import UUID, uuid4
-from sqlalchemy import String, DateTime, ForeignKey, SmallInteger
+
+from sqlalchemy import DateTime, ForeignKey, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column
+
 from .base import Base, utcnow
 
 

@@ -1,15 +1,16 @@
-import io
 import csv
-from datetime import datetime, UTC
+import io
+from datetime import UTC, datetime
 from pathlib import Path
-from sqlalchemy import select, update
+
 import qrcode
-from qrcode.image.svg import SvgImage
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from qrcode.image.svg import SvgImage
+from sqlalchemy import select, update
 
 from ..codes import generate_code
 from ..db import session_scope
-from ..models import Cohort, Code
+from ..models import Code, Cohort
 
 
 def generate_codes(*, cohort_name: str, count: int) -> list[str]:

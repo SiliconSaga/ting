@@ -3,8 +3,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def schema_only(settings_env):
-    from ting.models import Base
     from ting.db import get_engine
+    from ting.models import Base
     Base.metadata.create_all(get_engine())
     yield
     Base.metadata.drop_all(get_engine())

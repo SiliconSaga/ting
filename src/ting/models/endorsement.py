@@ -1,7 +1,9 @@
 from datetime import datetime
 from uuid import UUID
+
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
+
 from .base import Base, utcnow
 
 
