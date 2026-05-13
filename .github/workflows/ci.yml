@@ -7,6 +7,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Guard against the GHA default of "no limit" if any step hangs.
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:16-alpine

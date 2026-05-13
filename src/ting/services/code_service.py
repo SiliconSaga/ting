@@ -25,6 +25,10 @@ def generate_codes(*, cohort_name: str, count: int) -> list[str]:
         if cohort is None:
             raise ValueError(f"unknown cohort: {cohort_name}")
         prefix = f"{cohort.school_code}{cohort.batch_number:02d}"
+        # Load the full set of existing code_strs into memory for collision
+        # checks. Fine through ~100k codes (the unique constraint on Code.code_str
+        # would catch a collision at insert time anyway); revisit if a single
+        # ting instance ever needs to scale past that.
         existing = {row[0] for row in s.execute(select(Code.code_str)).all()}
         while len(out) < count:
             code_str = generate_code(prefix=prefix)

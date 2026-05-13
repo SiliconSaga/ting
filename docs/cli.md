@@ -43,7 +43,7 @@ for Settings`.)
 
 ## Full surface
 
-```
+```text
 ting healthcheck                       # DB + Valkey check, prints version
 ting migrate [direction]               # up (default) | head | down
 ting dev [--host H] [--port P] [--no-reload]

@@ -5,7 +5,7 @@ noted inline.
 
 ## Entity overview
 
-```
+```text
 schools ─── cohorts ─── codes ─── responses ─── questions ─── surveys ─── (back to cohorts)
                   └─ proposals ────┐
                                    ├─── pledges ── codes
