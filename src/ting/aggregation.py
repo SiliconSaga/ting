@@ -20,7 +20,7 @@ def borda(rankings: Iterable[Sequence[str]], all_options: Sequence[str] | None =
 
 
 def nps(scores: Sequence[int]) -> dict[str, float | int]:
-    # Filter to the valid 0–10 NPS range BEFORE deriving n so out-of-range
+    # Filter to the valid 0-10 NPS range BEFORE deriving n so out-of-range
     # data (corrupt/legacy/test payloads) can't silently skew the denominator.
     valid = [s for s in scores if 0 <= s <= 10]
     n = len(valid)
