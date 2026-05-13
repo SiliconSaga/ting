@@ -1,14 +1,16 @@
-import pytest
 from pathlib import Path
-from ting.services.seed_loader import load_seed, SeedError
+
+import pytest
+
 from ting.db import session_scope
-from ting.models import School, Cohort, Proposal, Survey, Question, Bulletin
+from ting.models import Bulletin, Cohort, Proposal, Question, School, Survey
+from ting.services.seed_loader import SeedError, load_seed
 
 
 @pytest.fixture(autouse=True)
 def schema_only(settings_env):
-    from ting.models import Base
     from ting.db import get_engine
+    from ting.models import Base
     Base.metadata.create_all(get_engine())
     yield
     Base.metadata.drop_all(get_engine())

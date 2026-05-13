@@ -1,4 +1,4 @@
-from ting.aggregation import borda, nps, likert_histogram
+from ting.aggregation import borda, likert_histogram, nps
 
 
 def test_borda_full_ranking():

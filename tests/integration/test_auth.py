@@ -1,5 +1,7 @@
+import time
 from uuid import uuid4
-from ting.auth import mint_session, resolve_session, clear_session
+
+from ting.auth import clear_session, mint_session, resolve_session
 
 
 def test_session_roundtrip(settings_env):
@@ -13,7 +15,7 @@ def test_session_roundtrip(settings_env):
 def test_session_expires(settings_env):
     code_id = uuid4()
     sid = mint_session(code_id, ttl_seconds=1)
-    import time; time.sleep(1.5)
+    time.sleep(1.5)
     assert resolve_session(sid) is None
 
 

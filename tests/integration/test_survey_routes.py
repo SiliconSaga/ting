@@ -1,21 +1,22 @@
 # tests/integration/test_survey_routes.py
-import pytest
 from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 
 @pytest.fixture
 def client(settings_env):
     from ting.app import create_app
-    from ting.models import Base
     from ting.db import get_engine
+    from ting.models import Base
     Base.metadata.create_all(get_engine())
     return TestClient(create_app())
 
 
 def _redeem(client) -> str:
-    from ting.services.seed_loader import load_seed
     from ting.services.code_service import generate_codes
+    from ting.services.seed_loader import load_seed
     load_seed(Path("seeds/example.yaml"))
     [code] = generate_codes(cohort_name="MPE-2026-spring-pilot", count=1)
     r = client.get(f"/r/{code}", follow_redirects=False)

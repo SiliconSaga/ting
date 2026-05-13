@@ -1,7 +1,8 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
+
 from ting.db import get_engine, session_scope
-from ting.models import Base, School, Cohort, Code, Proposal, Survey, Question, Response
+from ting.models import Base, Code, Cohort, Proposal, Question, Response, School, Survey
 
 
 @pytest.fixture(autouse=True)

@@ -1,5 +1,6 @@
-import typer
 from pathlib import Path
+
+import typer
 
 app = typer.Typer(no_args_is_help=True, help="Ting admin CLI")
 
@@ -29,8 +30,8 @@ def dev(
 @app.command()
 def migrate(direction: str = typer.Argument("up", help="up|down|head")) -> None:
     """Run Alembic migrations."""
-    from alembic.config import Config
     from alembic import command
+    from alembic.config import Config
 
     cfg = Config("alembic.ini")
     if direction in ("up", "head"):
@@ -47,12 +48,12 @@ def seed(
     dry_run: bool = typer.Option(False, "--dry-run", help="Validate without writing"),
 ) -> None:
     """Load schools + cohort + surveys + questions + proposals from a YAML file."""
-    from .services.seed_loader import load_seed, SeedError
+    from .services.seed_loader import SeedError, load_seed
     try:
         counts = load_seed(file, dry_run=dry_run)
     except SeedError as e:
         typer.echo(f"seed error: {e}", err=True)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     label = "(dry-run) would write" if dry_run else "wrote"
     typer.echo(f"{label}: {counts}")
 
@@ -82,7 +83,7 @@ def codes_export(
     only_unprinted: bool = typer.Option(False, "--only-unprinted"),
     out: Path = typer.Option(Path("-"), "--out", help="- = stdout"),
 ) -> None:
-    from .services.code_service import list_codes, export_csv, export_html, mark_printed
+    from .services.code_service import export_csv, export_html, list_codes, mark_printed
     rows = list_codes(cohort_name=cohort, only_unprinted=only_unprinted)
     if format == "csv":
         text = export_csv(codes=rows)
@@ -150,9 +151,10 @@ def school_add(
     district: str = typer.Option(..., "--district"),
 ) -> None:
     """Add or update a school record."""
+    from sqlalchemy import select
+
     from .db import session_scope
     from .models import School
-    from sqlalchemy import select
     with session_scope() as s:
         school = s.scalar(select(School).where(School.school_code == code))
         if school is None:
@@ -177,9 +179,10 @@ def survey_add(
     display_order: int = typer.Option(0, "--display-order"),
 ) -> None:
     """Add or update a survey for a cohort."""
+    from sqlalchemy import select
+
     from .db import session_scope
     from .models import Cohort, Survey
-    from sqlalchemy import select
     with session_scope() as s:
         c = s.scalar(select(Cohort).where(Cohort.name == cohort))
         if c is None:
@@ -202,11 +205,13 @@ def survey_add(
 def snapshot() -> None:
     """For each active cohort x survey pair, capture a summary snapshot (idempotent per minute)."""
     from datetime import timedelta
-    from sqlalchemy import select, func
+
+    from sqlalchemy import func, select
+
     from .db import session_scope
-    from .models import Cohort, Survey, SummarySnapshot
-    from .services.summary_service import build_summary
+    from .models import Cohort, SummarySnapshot, Survey
     from .models.base import utcnow
+    from .services.summary_service import build_summary
 
     saved = 0
     skipped = 0
@@ -251,12 +256,13 @@ def demo_populate(
 ) -> None:
     """Generate N codes and synthesize realistic responses across all surveys in the cohort."""
     import random
+
     from sqlalchemy import select
     from sqlalchemy.dialects.postgresql import insert as pg_insert
+
     from .db import session_scope
-    from .models import Cohort, Survey, Question, Response, Comment, Endorsement, Pledge, Proposal
+    from .models import Cohort, Comment, Endorsement, Pledge, Proposal, Question, Response, Survey
     from .services.code_service import generate_codes
-    from datetime import UTC
 
     CANNED_COMMENTS = [
         "We strongly support keeping staff in-house.",
@@ -356,7 +362,6 @@ def demo_populate(
             for cm in sample:
                 if cm.author_code_id == code.code_id:
                     continue  # skip self-endorsements
-                from sqlalchemy.exc import IntegrityError
                 try:
                     s.add(Endorsement(code_id=code.code_id, comment_id=cm.comment_id))
                     s.flush()

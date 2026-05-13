@@ -1,4 +1,5 @@
 from sqlalchemy import text
+
 from ting.db import get_engine, session_scope
 
 

@@ -1,22 +1,32 @@
 # src/ting/routes/survey.py
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from decimal import Decimal
+from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Request, HTTPException, Form
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from ..auth import resolve_session, clear_session
-from ..db import session_scope
-from ..models import Cohort, Code, Survey, Question, Response, MetricsEvent, Proposal, Comment, Endorsement, Pledge
-from ..valkey import get_valkey
-from ..ratelimit import allow_write
+from ..auth import clear_session, resolve_session
 from ..config import get_settings
-
+from ..db import session_scope
+from ..models import (
+    Code,
+    Cohort,
+    Comment,
+    Endorsement,
+    MetricsEvent,
+    Pledge,
+    Proposal,
+    Question,
+    Response,
+    Survey,
+)
+from ..ratelimit import allow_write
+from ..valkey import get_valkey
 
 router = APIRouter()
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -251,7 +261,9 @@ def proposal_detail(slug: str, request: Request) -> HTMLResponse:
 
 
 @router.post("/proposal/{slug}/comment")
-async def post_comment(slug: str, request: Request, body: str = Form(...), confirm_read: bool = Form(False)) -> JSONResponse:
+async def post_comment(
+    slug: str, request: Request, body: str = Form(...), confirm_read: bool = Form(False),
+) -> JSONResponse:
     code_id = _require_code(request)
     if not allow_write(str(code_id)):
         raise HTTPException(429)

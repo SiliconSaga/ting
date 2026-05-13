@@ -1,4 +1,3 @@
-import os
 from ting.config import Settings
 
 

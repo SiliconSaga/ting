@@ -1,10 +1,18 @@
-from collections import defaultdict
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 
-from ..aggregation import borda, nps as nps_calc, likert_histogram
+from ..aggregation import borda, likert_histogram
+from ..aggregation import nps as nps_calc
 from ..db import session_scope
 from ..models import (
-    Cohort, Code, Survey, Question, Response, Proposal, Comment, Endorsement, Pledge,
+    Code,
+    Cohort,
+    Comment,
+    Endorsement,
+    Pledge,
+    Proposal,
+    Question,
+    Response,
+    Survey,
 )
 
 

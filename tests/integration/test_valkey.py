@@ -1,4 +1,3 @@
-import pytest
 from ting.valkey import get_valkey
 
 

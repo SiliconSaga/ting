@@ -1,18 +1,18 @@
 # src/ting/routes/public.py
-from fastapi import APIRouter, Request, Form, HTTPException
+from datetime import UTC, datetime
+from pathlib import Path
+
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
 from sqlalchemy import select
-from datetime import datetime, UTC
 
-from ..codes import normalize_code
 from ..auth import mint_session
-from ..ratelimit import allow_redemption
+from ..codes import normalize_code
+from ..config import get_settings
 from ..db import session_scope
 from ..models import Code, Cohort
-from ..config import get_settings
-
+from ..ratelimit import allow_redemption
 
 router = APIRouter()
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -52,6 +52,7 @@ def about(request: Request) -> HTMLResponse:
 def cohort_info(cohort_name: str, request: Request) -> HTMLResponse:
     """Public-facing context page for a cohort (no code required)."""
     from sqlalchemy import select
+
     from ..db import session_scope
     from ..models import Cohort, School, Survey
 

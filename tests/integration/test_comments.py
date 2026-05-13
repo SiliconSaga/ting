@@ -1,17 +1,20 @@
 # tests/integration/test_comments.py
-import pytest
 from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
+
+from ting.config import get_settings
 
 
 @pytest.fixture
 def client(settings_env):
     from ting.app import create_app
-    from ting.models import Base
     from ting.db import get_engine
+    from ting.models import Base
     Base.metadata.create_all(get_engine())
-    from ting.services.seed_loader import load_seed
     from ting.services.code_service import generate_codes
+    from ting.services.seed_loader import load_seed
     load_seed(Path("seeds/example.yaml"))
     [code] = generate_codes(cohort_name="MPE-2026-spring-pilot", count=1)
     c = TestClient(create_app())
@@ -34,7 +37,7 @@ def test_post_comment_ok(client):
 
 def test_comment_cap(client, monkeypatch):
     monkeypatch.setenv("TING_MAX_COMMENTS_PER_CODE", "2")
-    from ting.config import get_settings; get_settings.cache_clear()
+    get_settings.cache_clear()
     for i in range(2):
         r = client.post("/proposal/retain-paras/comment",
                         data={"body": f"c{i}", "confirm_read": "true"})

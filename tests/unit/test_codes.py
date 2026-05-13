@@ -1,4 +1,4 @@
-from ting.codes import generate_code, normalize_code, ALPHABET
+from ting.codes import ALPHABET, generate_code, normalize_code
 
 
 def test_alphabet_has_no_confusing_chars():

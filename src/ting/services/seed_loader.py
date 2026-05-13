@@ -1,10 +1,11 @@
 from pathlib import Path
 from typing import Any
+
 import yaml
 from sqlalchemy import select
 
 from ..db import session_scope
-from ..models import School, Cohort, Proposal, Survey, Question, Bulletin
+from ..models import Bulletin, Cohort, Proposal, Question, School, Survey
 
 
 class SeedError(Exception):

@@ -1,15 +1,15 @@
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse  # noqa: F401
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import get_settings
 from .routes.public import router as public_router
-from .routes.survey import router as survey_router
 from .routes.summary import router as summary_router
-
+from .routes.survey import router as survey_router
 
 _STATUS_COPY = {
     400: ("Something's off",
@@ -17,7 +17,8 @@ _STATUS_COPY = {
     401: ("Sign in to continue",
           "This page needs an active session. Enter your code on the start page to continue."),
     404: ("We couldn't find that",
-          "We couldn't find that code or page. Check the code you entered (codes look like ABCD-1234-WXYZ) or scan the QR from your envelope."),
+          "We couldn't find that code or page. Check the code you entered (codes "
+          "look like ABCD-1234-WXYZ) or scan the QR from your envelope."),
     410: ("This cohort has ended",
           "This pilot cohort has closed. New codes will arrive in the next round; your past answers are preserved."),
     429: ("Slow down a moment",

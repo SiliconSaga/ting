@@ -1,17 +1,17 @@
 # src/ting/routes/summary.py
 import json
+from pathlib import Path
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
 from sqlalchemy import select
 
+from ..config import get_settings
 from ..db import session_scope
 from ..models import Cohort, Survey
 from ..services.summary_service import build_summary
 from ..valkey import get_valkey
-from ..config import get_settings
-
 
 router = APIRouter()
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))

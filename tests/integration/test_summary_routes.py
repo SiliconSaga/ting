@@ -1,14 +1,15 @@
 # tests/integration/test_summary_routes.py
-import pytest
 from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 
 @pytest.fixture
 def client(settings_env):
     from ting.app import create_app
-    from ting.models import Base
     from ting.db import get_engine
+    from ting.models import Base
     Base.metadata.create_all(get_engine())
     from ting.services.seed_loader import load_seed
     load_seed(Path("seeds/example.yaml"))

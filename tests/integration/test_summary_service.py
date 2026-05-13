@@ -1,8 +1,9 @@
-import pytest
 from pathlib import Path
-from ting.db import session_scope
-from ting.models import Base, Code, Response, Question, Pledge, Endorsement, Comment, Proposal
+
+import pytest
+
 from ting.db import get_engine
+from ting.models import Base, Code
 from ting.services.seed_loader import load_seed
 from ting.services.summary_service import build_summary
 
