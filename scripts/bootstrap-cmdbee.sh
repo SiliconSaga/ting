@@ -113,6 +113,24 @@ wait_claim_ready() {
   done
 }
 
+# Discover exactly one ting-valkey-*-leader Service. Multiple matches are
+# almost certainly a leftover from a botched re-bootstrap; we'd rather fail
+# fast than silently wire ting-secrets to whichever happens to sort first.
+# Returns the leader Service name on stdout, or empty when no match exists
+# yet (caller polls).
+find_unique_valkey_leader() {
+  local leaders
+  mapfile -t leaders < <(
+    "${KCTL[@]}" get svc -n valkey \
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null \
+      | grep -E '^ting-valkey-[a-z0-9]+-leader$' || true
+  )
+  if (( ${#leaders[@]} > 1 )); then
+    die "Multiple Valkey leader Services found in 'valkey' namespace (${leaders[*]}). Clean up the stale ones before bootstrapping."
+  fi
+  printf '%s\n' "${leaders[0]:-}"
+}
+
 wait_claim_ready postgresqlinstance ting-pg
 
 # Valkey's Crossplane composite Ready condition has been observed to lag the
@@ -122,8 +140,7 @@ wait_claim_ready postgresqlinstance ting-pg
 log "Waiting for Valkey leader Service to have endpoints (timeout ${CLAIM_TIMEOUT}s)..."
 vk_deadline=$((SECONDS + CLAIM_TIMEOUT))
 while :; do
-  leader=$("${KCTL[@]}" get svc -n valkey -o name 2>/dev/null \
-    | grep -oE 'ting-valkey-[a-z0-9]+-leader$' | head -1 || true)
+  leader="$(find_unique_valkey_leader)"
   if [[ -n "$leader" ]]; then
     eps=$("${KCTL[@]}" get endpoints "$leader" -n valkey \
       -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null || true)
@@ -147,10 +164,7 @@ DB_URL="postgresql+psycopg://ting:${PG_PASS_ENC}@ting-pg-pgbouncer.${NS}.svc.clu
 ok "database_url assembled"
 
 log "Discovering Valkey leader Service..."
-VK_LEADER=$("${KCTL[@]}" get svc -n valkey -o name 2>/dev/null \
-  | awk -F/ '{print $2}' \
-  | grep -E '^ting-valkey-[a-z0-9]+-leader$' \
-  | head -1 || true)
+VK_LEADER="$(find_unique_valkey_leader)"
 [[ -n "$VK_LEADER" ]] || die "Could not find ting-valkey-*-leader Service in 'valkey' namespace"
 VK_URL="redis://${VK_LEADER}.valkey.svc.cluster.local:6379/0"
 ok "valkey_url: $VK_URL"
