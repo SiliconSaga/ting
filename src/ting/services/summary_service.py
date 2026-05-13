@@ -120,14 +120,19 @@ def build_summary(*, cohort_name: str, survey_slug: str, grade_filter: int | Non
             for r in sorted(pledge_rows, key=lambda r: -float(r.dollars or 0))
         ]
 
-        # Top endorsed comments
+        # Top endorsed comments — scope to comments authored by eligible
+        # codes (i.e. this cohort + grade slice) so unrelated cohorts'
+        # comments never leak into this survey's summary.
         comment_rows = s.execute(
             select(
                 Comment.comment_id, Comment.proposal_id, Comment.body,
                 func.count(Endorsement.code_id).label("endorsements"),
             )
             .outerjoin(Endorsement, Endorsement.comment_id == Comment.comment_id)
-            .where(Comment.hidden_at.is_(None))
+            .where(
+                Comment.hidden_at.is_(None),
+                Comment.author_code_id.in_(eligible_code_ids),
+            )
             .group_by(Comment.comment_id)
             .order_by(func.count(Endorsement.code_id).desc())
             .limit(5)

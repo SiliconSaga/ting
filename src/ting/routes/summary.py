@@ -60,7 +60,10 @@ def summary(
                 break
         survey = survey or ""
 
-    cache_key = f"summary:{cohort}:{survey}:{grade or 'all'}"
+    # `grade or 'all'` would treat grade=0 (Kindergarten) as unfiltered;
+    # check for None explicitly so each grade slice gets its own cache.
+    grade_key = "all" if grade is None else str(grade)
+    cache_key = f"summary:{cohort}:{survey}:{grade_key}"
     vk = get_valkey()
     cached = vk.get(cache_key)
     if cached:

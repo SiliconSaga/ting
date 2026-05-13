@@ -20,12 +20,15 @@ def borda(rankings: Iterable[Sequence[str]], all_options: Sequence[str] | None =
 
 
 def nps(scores: Sequence[int]) -> dict[str, float | int]:
-    n = len(scores)
+    # Filter to the valid 0–10 NPS range BEFORE deriving n so out-of-range
+    # data (corrupt/legacy/test payloads) can't silently skew the denominator.
+    valid = [s for s in scores if 0 <= s <= 10]
+    n = len(valid)
     if n == 0:
         return {"n": 0, "detractors": 0, "passives": 0, "promoters": 0, "nps": 0.0}
-    detractors = sum(1 for s in scores if 0 <= s <= 6)
-    passives = sum(1 for s in scores if 7 <= s <= 8)
-    promoters = sum(1 for s in scores if 9 <= s <= 10)
+    detractors = sum(1 for s in valid if s <= 6)
+    passives = sum(1 for s in valid if 7 <= s <= 8)
+    promoters = sum(1 for s in valid if s >= 9)
     nps_val = (promoters - detractors) / n * 100
     return {"n": n, "detractors": detractors, "passives": passives, "promoters": promoters, "nps": nps_val}
 

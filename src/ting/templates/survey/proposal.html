@@ -6,6 +6,7 @@
 <p>{{ proposal.body }}</p>
 
 <h2>Comments</h2>
+<div class="comment-list">
 {% for c in comments %}
   <div class="comment" id="c-{{ c.comment_id }}">
     <p>{{ c.body }}</p>
@@ -17,6 +18,7 @@
 {% else %}
   <p class="muted">No comments yet.</p>
 {% endfor %}
+</div>
 
 <h2>Add a comment</h2>
 {% if comment_count >= 5 %}
