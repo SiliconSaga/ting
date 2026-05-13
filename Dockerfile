@@ -10,10 +10,13 @@ WORKDIR /app
 ENV PYTHONPATH=/app/lib \
     PYTHONUNBUFFERED=1 \
     PATH=/app/lib/bin:$PATH
-COPY --from=builder /install /app/lib
-COPY src/ /app/src/
-COPY migrations/ /app/migrations/
-COPY alembic.ini /app/
-COPY seeds/ /app/seeds/
+RUN groupadd --system --gid 1000 ting && \
+    useradd --system --uid 1000 --gid ting --home /app --no-create-home ting
+COPY --from=builder --chown=ting:ting /install /app/lib
+COPY --chown=ting:ting src/ /app/src/
+COPY --chown=ting:ting migrations/ /app/migrations/
+COPY --chown=ting:ting alembic.ini /app/
+COPY --chown=ting:ting seeds/ /app/seeds/
+USER ting
 EXPOSE 8000
 CMD ["uvicorn", "ting.app:app", "--host", "0.0.0.0", "--port", "8000"]

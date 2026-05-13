@@ -11,7 +11,9 @@ def client(settings_env):
     from ting.db import get_engine
     from ting.models import Base
     Base.metadata.create_all(get_engine())
-    return TestClient(create_app())
+    with TestClient(create_app()) as c:
+        yield c
+    Base.metadata.drop_all(get_engine())
 
 
 def _redeem(client) -> str:

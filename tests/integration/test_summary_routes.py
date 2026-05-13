@@ -13,7 +13,9 @@ def client(settings_env):
     Base.metadata.create_all(get_engine())
     from ting.services.seed_loader import load_seed
     load_seed(Path("seeds/example.yaml"))
-    return TestClient(create_app())
+    with TestClient(create_app()) as c:
+        yield c
+    Base.metadata.drop_all(get_engine())
 
 
 def test_summary_renders(client):

@@ -15,9 +15,10 @@ def client(settings_env):
     from ting.services.seed_loader import load_seed
     load_seed(Path("seeds/example.yaml"))
     [code] = generate_codes(cohort_name="MPE-2026-spring-pilot", count=1)
-    c = TestClient(create_app())
-    c.get(f"/r/{code}", follow_redirects=False)
-    yield c
+    with TestClient(create_app()) as c:
+        c.get(f"/r/{code}", follow_redirects=False)
+        yield c
+    Base.metadata.drop_all(get_engine())
 
 
 def test_pledge_upserts(client):
