@@ -223,7 +223,16 @@ def survey_add(
         if c is None:
             typer.echo(f"error: cohort {cohort!r} not found", err=True)
             raise typer.Exit(1)
-        sv = s.scalar(select(Survey).where(Survey.slug == slug))
+        # Scope the lookup to (slug, cohort_id). With Survey.slug globally
+        # unique today, a same-slug under a different cohort will surface
+        # as a clear IntegrityError at insert rather than silently
+        # reassigning the existing row's cohort.
+        sv = s.scalar(
+            select(Survey).where(
+                Survey.slug == slug,
+                Survey.cohort_id == c.cohort_id,
+            )
+        )
         if sv is None:
             s.add(Survey(slug=slug, title=title, intro=intro,
                          cohort_id=c.cohort_id, display_order=display_order))
@@ -231,7 +240,6 @@ def survey_add(
         else:
             sv.title = title
             sv.intro = intro
-            sv.cohort_id = c.cohort_id
             sv.display_order = display_order
             typer.echo(f"updated survey {slug}")
 

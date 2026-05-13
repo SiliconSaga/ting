@@ -96,9 +96,16 @@ def load_seed(path: Path, dry_run: bool = False) -> dict[str, int]:
             counts["proposals"] += 1
         s.flush()
 
-        # Surveys upsert by slug; questions inside each survey upsert by slug
+        # Surveys upsert by (slug, cohort_id) — same safety pattern as
+        # the question upsert below; prevents silent cross-cohort
+        # reassignment when two cohorts seed the same survey slug.
         for sv in data.get("surveys", []):
-            survey = s.scalar(select(Survey).where(Survey.slug == sv["slug"]))
+            survey = s.scalar(
+                select(Survey).where(
+                    Survey.slug == sv["slug"],
+                    Survey.cohort_id == cohort.cohort_id,
+                )
+            )
             if survey is None:
                 survey = Survey(
                     slug=sv["slug"],
@@ -112,7 +119,9 @@ def load_seed(path: Path, dry_run: bool = False) -> dict[str, int]:
             else:
                 survey.title = sv["title"]
                 survey.intro = sv.get("intro", survey.intro)
-                survey.cohort_id = cohort.cohort_id
+                # cohort_id intentionally NOT re-assigned: the lookup is
+                # scoped to (slug, cohort_id) so a match by definition
+                # already has the correct cohort.
                 survey.display_order = sv.get("display_order", survey.display_order)
             counts["surveys"] += 1
 
