@@ -10,7 +10,7 @@
       {% if c.name == selected_cohort %}
         <span class="cohort-pill">{{ c.school_code }}{{ '%02d' | format(c.batch_number) }} — {{ c.name }}</span>
       {% else %}
-        <a href="/summary?cohort={{ c.name }}">{{ c.school_code }}{{ '%02d' | format(c.batch_number) }} — {{ c.name }}</a>
+        <a href="/summary?cohort={{ c.name | urlencode }}">{{ c.school_code }}{{ '%02d' | format(c.batch_number) }} — {{ c.name }}</a>
       {% endif %}
     {% endfor %}
   </div>
@@ -22,7 +22,7 @@
       {% if sv.slug == selected_survey %}
         <strong class="active">{{ sv.title }}</strong>
       {% else %}
-        <a href="/summary?cohort={{ active.name }}&amp;survey={{ sv.slug }}">{{ sv.title }}</a>
+        <a href="/summary?cohort={{ active.name | urlencode }}&amp;survey={{ sv.slug | urlencode }}">{{ sv.title }}</a>
       {% endif %}
     {% endfor %}
   </nav>

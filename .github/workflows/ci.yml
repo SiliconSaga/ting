@@ -29,5 +29,7 @@ jobs:
     - env:
         TING_DATABASE_URL: postgresql+psycopg://ting:ting@localhost:5432/ting
         TING_VALKEY_URL: redis://localhost:6379/0
-        TING_SESSION_SECRET: ${{ secrets.GITHUB_TOKEN }}-padded-to-32-chars-abc
+        # Fixed test value. Don't derive from GITHUB_TOKEN: a privileged
+        # token doesn't belong as an application secret, even in test.
+        TING_SESSION_SECRET: ci-test-session-secret-not-for-prod-use-padding-32
       run: pytest tests/unit tests/integration -v

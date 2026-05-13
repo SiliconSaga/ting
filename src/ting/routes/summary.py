@@ -73,9 +73,10 @@ def summary(
         vk.setex(cache_key, SUMMARY_CACHE_TTL, json.dumps(data, default=str))
 
     s = get_settings()
+    from urllib.parse import quote
     breadcrumb = [{"label": "Survey results"}]
     if cohort:
-        breadcrumb.append({"label": cohort, "href": f"/cohort/{cohort}"})
+        breadcrumb.append({"label": cohort, "href": f"/cohort/{quote(cohort, safe='')}"})
 
     return TEMPLATES.TemplateResponse(
         "summary/index.html",

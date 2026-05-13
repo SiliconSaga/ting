@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse  # noqa: F401
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import get_settings
@@ -73,10 +74,12 @@ def create_app() -> FastAPI:
 
 
 # Module-level singleton for uvicorn: `uvicorn ting.app:app`
-# Guarded so test collection (where env vars are unset) doesn't fail on import.
+# Narrowly guarded so test collection (where env vars are unset) doesn't fail
+# on import, while real startup errors (import errors, DB unreachable, etc.)
+# still crash fast instead of silently serving a degraded healthz-only app.
 try:
     app = create_app()
-except Exception:  # ValidationError if required env vars missing
+except ValidationError:
     app = FastAPI(title="ting", version="0.1.0")
 
     @app.get("/healthz")
