@@ -1,0 +1,19 @@
+# Cross-namespace allowance: lets the traefik-gateway in kube-system read
+# the ting-tls Secret in the ting namespace so it can be served via SNI for
+# https://ting.cmdbee.org. The Gateway lists this secret in its
+# certificateRefs (live-patched on 2026-05-13; pending mirror into the
+# Vegvísir manifests once gitea/ArgoCD is healthy).
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: gateway-read-ting-tls
+  namespace: ting
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    namespace: kube-system
+  to:
+  - group: ""
+    kind: Secret
+    name: ting-tls

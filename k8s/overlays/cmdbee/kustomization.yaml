@@ -3,4 +3,6 @@ kind: Kustomization
 namespace: ting
 resources:
 - ../../base
-# Base already targets cmdbee hostnames + staging cert -- no patches needed.
+- referencegrant.yaml
+# Base already targets cmdbee hostnames + prod cert -- no patches needed.
+# The ReferenceGrant lets the kube-system Gateway serve ting-tls via SNI.
