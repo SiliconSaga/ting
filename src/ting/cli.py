@@ -92,11 +92,12 @@ def codes_export(
     else:
         raise typer.BadParameter("format must be csv|html")
     if str(out) == "-":
+        # Stdout preview is for inspection; don't stamp printed_at on the codes.
         typer.echo(text)
     else:
         out.write_text(text)
         typer.echo(f"wrote {len(rows)} codes to {out}")
-    mark_printed(code_strs=[r.code_str for r in rows])
+        mark_printed(code_strs=[r.code_str for r in rows])
 
 
 @app.command("cohort")

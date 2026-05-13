@@ -13,7 +13,12 @@ class SeedError(Exception):
 
 
 def load_seed(path: Path, dry_run: bool = False) -> dict[str, int]:
-    data = yaml.safe_load(path.read_text())
+    try:
+        data = yaml.safe_load(path.read_text())
+    except yaml.YAMLError as e:
+        # Normalize parse errors to SeedError so the CLI reports them the
+        # same way as the structural validation errors below.
+        raise SeedError(f"YAML parse error in {path}: {e}") from e
     _validate(data)
 
     counts: dict[str, int] = {

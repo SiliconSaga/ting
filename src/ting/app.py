@@ -1,10 +1,10 @@
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse  # noqa: F401
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import get_settings
@@ -73,15 +73,14 @@ def create_app() -> FastAPI:
     return app
 
 
-# Module-level singleton for uvicorn: `uvicorn ting.app:app`
-# Narrowly guarded so test collection (where env vars are unset) doesn't fail
-# on import, while real startup errors (import errors, DB unreachable, etc.)
-# still crash fast instead of silently serving a degraded healthz-only app.
-try:
+# Module-level singleton for uvicorn: `uvicorn ting.app:app`.
+# Tests import this module before pytest's monkeypatch sets env vars, so
+# we only construct the app when configuration is actually present. In
+# production, k8s injects TING_DATABASE_URL via the ting-secrets Secret;
+# if that env var is missing OR the resulting Settings fail validation,
+# we let the error propagate so uvicorn fails loudly instead of serving
+# a degraded healthz-only app that looks healthy to k8s probes.
+if "TING_DATABASE_URL" in os.environ:
     app = create_app()
-except ValidationError:
-    app = FastAPI(title="ting", version="0.1.0")
-
-    @app.get("/healthz")
-    def healthz() -> dict[str, str]:  # type: ignore[misc]
-        return {"status": "ok"}
+else:
+    app = None  # type: ignore[assignment]

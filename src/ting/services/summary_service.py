@@ -36,9 +36,15 @@ def build_summary(*, cohort_name: str, survey_slug: str, grade_filter: int | Non
         if grade_filter is not None and len(eligible_code_ids) < n_floor:
             return {"error": "slice-too-small", "n": len(eligible_code_ids), "floor": n_floor}
 
+        # Scope to responses on questions in THIS survey — otherwise multi-survey
+        # cohorts overstate the count (every voter on any survey gets included).
         n_respondents = s.scalar(
             select(func.count(func.distinct(Response.code_id)))
-            .where(Response.code_id.in_(eligible_code_ids))
+            .join(Question, Question.question_id == Response.question_id)
+            .where(
+                Response.code_id.in_(eligible_code_ids),
+                Question.survey_id == survey.survey_id,
+            )
         ) or 0
 
         # Questions belonging to this survey
