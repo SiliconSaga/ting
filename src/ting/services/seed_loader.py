@@ -104,7 +104,15 @@ def load_seed(path: Path, dry_run: bool = False) -> dict[str, int]:
             counts["surveys"] += 1
 
             for q in sv.get("questions", []):
-                ques = s.scalar(select(Question).where(Question.slug == q["slug"]))
+                # Scope lookup to (slug, survey_id) so a question slug
+                # accidentally reused across surveys never silently
+                # re-parents an existing record onto this survey.
+                ques = s.scalar(
+                    select(Question).where(
+                        Question.slug == q["slug"],
+                        Question.survey_id == survey.survey_id,
+                    )
+                )
                 if ques is None:
                     ques = Question(
                         slug=q["slug"], type=q["type"], prompt=q["prompt"],
@@ -116,9 +124,12 @@ def load_seed(path: Path, dry_run: bool = False) -> dict[str, int]:
                 else:
                     ques.type = q["type"]
                     ques.prompt = q["prompt"]
-                    ques.payload = q.get("payload", {})
-                    ques.display_order = q.get("display_order")
-                    ques.survey_id = survey.survey_id
+                    # Only overwrite payload if YAML actually provided it;
+                    # otherwise an omission silently wipes existing JSONB config.
+                    if "payload" in q:
+                        ques.payload = q["payload"]
+                    if "display_order" in q:
+                        ques.display_order = q["display_order"]
                 counts["questions"] += 1
 
         # Bulletins append
@@ -132,18 +143,38 @@ def load_seed(path: Path, dry_run: bool = False) -> dict[str, int]:
 def _validate(data: Any) -> None:
     if not isinstance(data, dict):
         raise SeedError("Top-level YAML must be a mapping")
+
     if "cohort" not in data or not isinstance(data["cohort"], dict) or "name" not in data["cohort"]:
         raise SeedError("cohort.name is required")
     cohort = data["cohort"]
-    if "school_code" not in cohort:
-        raise SeedError("cohort.school_code is required")
-    if "batch_number" not in cohort:
-        raise SeedError("cohort.batch_number is required")
+    for key in ("school_code", "batch_number"):
+        if key not in cohort:
+            raise SeedError(f"cohort.{key} is required")
+
+    for sc in data.get("schools", []):
+        for key in ("code", "name", "district"):
+            if key not in sc:
+                raise SeedError(f"school missing {key!r}: {sc!r}")
+
+    for p in data.get("proposals", []):
+        for key in ("slug", "title"):
+            if key not in p:
+                raise SeedError(f"proposal missing {key!r}: {p!r}")
+
     for sv in data.get("surveys", []):
         if "slug" not in sv:
             raise SeedError("survey missing slug")
         if "title" not in sv:
             raise SeedError(f"survey {sv.get('slug')}: title is required")
         for q in sv.get("questions", []):
+            for key in ("slug", "type", "prompt"):
+                if key not in q:
+                    raise SeedError(
+                        f"question in survey {sv.get('slug')!r} missing {key!r}: {q!r}"
+                    )
             if q.get("type") not in ("ranking", "nps", "likert"):
                 raise SeedError(f"question {q.get('slug')}: invalid type {q.get('type')!r}")
+
+    for b in data.get("bulletins", []):
+        if "body" not in b:
+            raise SeedError(f"bulletin missing 'body': {b!r}")
