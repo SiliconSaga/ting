@@ -22,7 +22,15 @@ def build_summary(*, cohort_name: str, survey_slug: str, grade_filter: int | Non
         if cohort is None:
             return {"error": "cohort not found"}
 
-        survey = s.scalar(select(Survey).where(Survey.slug == survey_slug))
+        # Scope the lookup to the requested cohort. A bare slug match could
+        # otherwise pull a survey from a different cohort and mix it with
+        # this cohort's eligible codes, producing a nonsense summary.
+        survey = s.scalar(
+            select(Survey).where(
+                Survey.slug == survey_slug,
+                Survey.cohort_id == cohort.cohort_id,
+            )
+        )
         if survey is None:
             return {"error": "survey not found"}
 
@@ -126,15 +134,20 @@ def build_summary(*, cohort_name: str, survey_slug: str, grade_filter: int | Non
             for r in sorted(pledge_rows, key=lambda r: -float(r.dollars or 0))
         ]
 
-        # Top endorsed comments — scope to comments authored by eligible
-        # codes (i.e. this cohort + grade slice) so unrelated cohorts'
-        # comments never leak into this survey's summary.
+        # Top endorsed comments — scope BOTH the comment authorship AND the
+        # endorsement count to the eligible slice. Otherwise a grade filter
+        # would count endorsements from outside the slice, inflating the
+        # in-slice headline numbers.
         comment_rows = s.execute(
             select(
                 Comment.comment_id, Comment.proposal_id, Comment.body,
                 func.count(Endorsement.code_id).label("endorsements"),
             )
-            .outerjoin(Endorsement, Endorsement.comment_id == Comment.comment_id)
+            .outerjoin(
+                Endorsement,
+                (Endorsement.comment_id == Comment.comment_id)
+                & (Endorsement.code_id.in_(eligible_code_ids)),
+            )
             .where(
                 Comment.hidden_at.is_(None),
                 Comment.author_code_id.in_(eligible_code_ids),

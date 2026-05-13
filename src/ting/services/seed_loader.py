@@ -27,7 +27,15 @@ def load_seed(path: Path, dry_run: bool = False) -> dict[str, int]:
     }
 
     if dry_run:
-        return counts
+        # Report what *would* be written so the operator sees actual numbers.
+        return {
+            "schools": len(data.get("schools", [])),
+            "cohort": 1 if data.get("cohort") else 0,
+            "proposals": len(data.get("proposals", [])),
+            "surveys": len(data.get("surveys", [])),
+            "questions": sum(len(sv.get("questions", [])) for sv in data.get("surveys", [])),
+            "bulletins": len(data.get("bulletins", [])),
+        }
 
     with session_scope() as s:
         # Schools upsert by code

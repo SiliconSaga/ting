@@ -5,15 +5,42 @@ import typer
 app = typer.Typer(no_args_is_help=True, help="Ting admin CLI")
 
 
+def _redact_url(url: str) -> str:
+    """Replace the password segment of a URL with ***."""
+    import re
+    return re.sub(r"://([^:/@]+):[^@]+@", r"://\1:***@", url)
+
+
 @app.command()
 def healthcheck() -> None:
-    """Check DB / Valkey connectivity + print version."""
+    """Probe DB and Valkey connectivity; print version + redacted config."""
+    from sqlalchemy import text
+
     from .config import get_settings
+    from .db import get_engine
+    from .valkey import get_valkey
 
     s = get_settings()
     typer.echo(f"ting v0.1.0 environment={s.environment}")
-    typer.echo(f"database_url={s.database_url}")
-    typer.echo(f"valkey_url={s.valkey_url}")
+    typer.echo(f"database_url={_redact_url(s.database_url)}")
+    typer.echo(f"valkey_url={_redact_url(s.valkey_url)}")
+
+    failed = False
+    try:
+        with get_engine().connect() as conn:
+            conn.execute(text("SELECT 1"))
+        typer.echo("database: ok")
+    except Exception as e:
+        typer.echo(f"database: ERROR {e}", err=True)
+        failed = True
+    try:
+        get_valkey().ping()
+        typer.echo("valkey: ok")
+    except Exception as e:
+        typer.echo(f"valkey: ERROR {e}", err=True)
+        failed = True
+    if failed:
+        raise typer.Exit(1)
 
 
 @app.command()
@@ -114,12 +141,19 @@ def cohort(action: str, name: str) -> None:
 @app.command()
 def report(
     cohort: str = typer.Option(..., "--cohort"),
+    survey: str = typer.Option(None, "--survey", help="Survey slug; defaults to the cohort's first survey."),
     out: Path = typer.Option(Path("summary.html"), "--out"),
     base_url: str = typer.Option("http://localhost:8000", "--base-url"),
 ) -> None:
     """Save the printable /summary page as HTML (then browser-print to PDF)."""
+    from urllib.parse import urlencode
+
     import httpx
-    r = httpx.get(f"{base_url.rstrip('/')}/summary?cohort={cohort}&print=true", timeout=30)
+    params = {"cohort": cohort, "print": "true"}
+    if survey:
+        params["survey"] = survey
+    url = f"{base_url.rstrip('/')}/summary?{urlencode(params)}"
+    r = httpx.get(url, timeout=30)
     r.raise_for_status()
     out.write_text(r.text)
     typer.echo(f"wrote {out}")
