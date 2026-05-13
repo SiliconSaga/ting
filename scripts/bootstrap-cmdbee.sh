@@ -74,7 +74,9 @@ ok "namespace $NS"
 # sessions), so preserve any existing value.
 if ! "${KCTL[@]}" get secret ting-secrets -n "$NS" >/dev/null 2>&1; then
   log "Creating placeholder ting-secrets (real values populated later)..."
-  SESSION_SECRET="$(openssl rand -base64 48 | head -c 48)"
+  # 36 raw bytes → 48 base64 chars; tr strips the trailing newline. Avoids
+  # the openssl|head SIGPIPE failure under set -o pipefail.
+  SESSION_SECRET="$(openssl rand -base64 36 | tr -d '\n')"
   "${KCTL[@]}" create secret generic ting-secrets -n "$NS" \
     --from-literal=database_url="postgresql+psycopg://placeholder:placeholder@placeholder:5432/ting" \
     --from-literal=valkey_url="redis://placeholder:6379/0" \
@@ -112,12 +114,28 @@ wait_claim_ready() {
 }
 
 wait_claim_ready postgresqlinstance ting-pg
-# Valkey's composite Ready condition can lag; the leader pod becoming
-# endpoint-backed is the real signal we need. Try the Crossplane condition first,
-# then fall back to checking the leader Service has endpoints.
-if ! timeout 60 bash -c "while [[ \"\$($(printf '%q ' "${KCTL[@]}") get valkeycluster ting-valkey -n $NS -o jsonpath='{.status.conditions[?(@.type==\"Ready\")].status}' 2>/dev/null)\" != 'True' ]]; do sleep 5; done" 2>/dev/null; then
-  warn "ValkeyCluster Ready condition slow to flip; checking leader Service endpoints instead"
-fi
+
+# Valkey's Crossplane composite Ready condition has been observed to lag the
+# actual data plane (composition reports Creating while the leader pod is
+# already serving). The leader Service having endpoints is the real signal we
+# need, so poll that directly.
+log "Waiting for Valkey leader Service to have endpoints (timeout ${CLAIM_TIMEOUT}s)..."
+vk_deadline=$((SECONDS + CLAIM_TIMEOUT))
+while :; do
+  leader=$("${KCTL[@]}" get svc -n valkey -o name 2>/dev/null \
+    | grep -oE 'ting-valkey-[a-z0-9]+-leader$' | head -1 || true)
+  if [[ -n "$leader" ]]; then
+    eps=$("${KCTL[@]}" get endpoints "$leader" -n valkey \
+      -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null || true)
+    if [[ -n "$eps" ]]; then
+      ok "Valkey leader $leader serving (endpoints: $eps)"
+      break
+    fi
+  fi
+  (( SECONDS > vk_deadline )) && die "Valkey leader Service has no endpoints after ${CLAIM_TIMEOUT}s"
+  printf '.'
+  sleep 10
+done
 
 # --- 6. Derive real URLs + update ting-secrets ----------------------------
 
@@ -169,7 +187,9 @@ ok "seed loaded"
 # --- 9. Smoke + report ----------------------------------------------------
 
 log "Smoke test: GET https://$HOST/healthz ..."
-if curl -ksS --max-time 10 "https://$HOST/healthz" | grep -q '"status":"ok"'; then
+# -f fails on non-2xx; the regex is whitespace-tolerant.
+if curl -ksSf --max-time 10 "https://$HOST/healthz" \
+    | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'; then
   ok "https://$HOST/healthz returns ok"
 else
   warn "https://$HOST/healthz did not return ok yet — cert issuance can take a minute; retry shortly"

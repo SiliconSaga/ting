@@ -143,10 +143,13 @@ Same shape as cmdbee, but the overlay differs (prod cert issuer, prod
 hostname). When ready:
 
 1. Point `ting.frontstate.org` DNS at the Traefik LB IP (one-time)
-2. `make bootstrap-cmdbee` swapped to a `bootstrap-frontstate` equivalent
-   (or override env: `OVERLAY=frontstate HOST=ting.frontstate.org NS=ting
-   make bootstrap-cmdbee` — but a proper `bootstrap-frontstate.sh` is
-   cleaner)
+2. Add a `scripts/bootstrap-frontstate.sh` (copy of `bootstrap-cmdbee.sh`
+   with the overlay path pointed at `k8s/overlays/frontstate` and HOST
+   default flipped to `ting.frontstate.org`) plus a matching `make
+   bootstrap-frontstate` target. The current scripts hardcode the
+   cmdbee overlay; a frontstate variant is a deliberate, separate
+   artifact rather than an env-var override so the production path is
+   visible in `git diff` and in `make help`.
 3. Regenerate any printed-for-distribution QR codes with
    `--base-url https://ting.frontstate.org` before envelopes ship
 

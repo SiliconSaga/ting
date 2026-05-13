@@ -62,7 +62,9 @@ print(f'cleared {n} cached summary entries')
 # 5. Smoke.
 if [[ "${SKIP_SMOKE:-0}" != "1" ]]; then
   log "Smoke test: GET https://$HOST/healthz ..."
-  if curl -ksS --max-time 10 "https://$HOST/healthz" | grep -q '"status":"ok"'; then
+  # -f fails on non-2xx; the regex is whitespace-tolerant.
+  if curl -ksSf --max-time 10 "https://$HOST/healthz" \
+      | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'; then
     ok "https://$HOST/healthz returns ok"
   else
     die "https://$HOST/healthz did not return ok"
