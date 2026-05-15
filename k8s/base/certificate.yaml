@@ -9,7 +9,7 @@ spec:
   privateKey:
     rotationPolicy: Always
   issuerRef:
-    name: letsencrypt-gateway-staging
+    name: letsencrypt-gateway
     kind: ClusterIssuer
   dnsNames:
   - ting.cmdbee.org
