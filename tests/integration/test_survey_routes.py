@@ -51,7 +51,12 @@ def test_respond_likert_persists(client):
     assert r.status_code == 200
     # Re-render the specific survey page and check the radio is checked
     r2 = client.get("/survey/spring-pilot-general")
-    assert 'value="4" checked' in r2.text
+    # The radio for score=4 must be checked after the POST. We look for
+    # `data-testid="likert-4"` (the stable selector) followed by `checked`
+    # on the same input element rather than asserting on adjacent
+    # attribute order, which is fragile to template tweaks.
+    import re
+    assert re.search(r'data-testid="likert-4"[^>]*\schecked', r2.text), r2.text[:500]
 
 
 def test_respond_unauth(client):

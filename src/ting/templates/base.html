@@ -24,6 +24,7 @@
 <script data-goatcounter="https://{{ goatcounter_site_code }}.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 {% endif %}
+{% block extra_head %}{% endblock %}
 </head>
 <body>
 <header>
@@ -49,6 +50,6 @@
 </header>
 {% block hero %}{% endblock %}
 <main>{% block main %}{% endblock %}</main>
-<footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Survey results</a></footer>
+<footer><a href="/privacy">Privacy</a> · <a href="/about">About</a> · <a href="/summary">Survey results</a> · <a href="/sandbox">Sandbox</a></footer>
 </body>
 </html>

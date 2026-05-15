@@ -1,14 +1,25 @@
 {# src/ting/templates/survey/_nps.html #}
 {% set ans = existing.get(q.question_id, {}) %}
 {% set current = ans.get('score') %}
+{% set post_url = '/sandbox/echo' if sandbox else '/respond/' ~ q.slug %}
 <p class="muted">{{ q.payload.subject }} — 0 = not at all, 10 = extremely likely</p>
-<form hx-post="/respond/{{ q.slug }}" hx-trigger="change" hx-swap="none" class="nps-scale"
+<form data-testid="widget-nps" data-question-slug="{{ q.slug }}"
+      hx-post="{{ post_url }}" hx-trigger="change" hx-swap="none" class="nps-scale"
+      x-data="{status: ''}"
+      {% if sandbox %}@change="status = 'Chose ' + $event.target.value + '/10'"{% endif %}
       hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')">
+  {% if sandbox %}
+    <input type="hidden" name="question_slug" value="{{ q.slug }}">
+    <input type="hidden" name="question_type" value="nps">
+  {% endif %}
   {% for v in range(0, 11) %}
     <label>
-      <input type="radio" name="score" value="{{ v }}" {% if current == v %}checked{% endif %}>
+      <input type="radio" name="score" value="{{ v }}" data-testid="nps-{{ v }}" {% if current == v %}checked{% endif %}>
       <span>{{ v }}</span>
     </label>
   {% endfor %}
+  {% if sandbox %}
+    <small class="sandbox-status muted" data-testid="status-nps" x-text="status"></small>
+  {% endif %}
 </form>
 <small class="save-indicator muted" data-state=""></small>

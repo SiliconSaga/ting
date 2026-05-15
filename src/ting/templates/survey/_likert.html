@@ -1,14 +1,26 @@
 {# src/ting/templates/survey/_likert.html #}
 {% set ans = existing.get(q.question_id, {}) %}
 {% set current = ans.get('score') %}
+{% set post_url = '/sandbox/echo' if sandbox else '/respond/' ~ q.slug %}
+{% set likert_labels = [(1, 'Strongly disagree'), (2, 'Disagree'), (3, 'Neutral'), (4, 'Agree'), (5, 'Strongly agree')] %}
 <p>{{ q.payload.statement }}</p>
-<form hx-post="/respond/{{ q.slug }}" hx-trigger="change" hx-swap="none" class="likert-scale"
+<form data-testid="widget-likert" data-question-slug="{{ q.slug }}"
+      hx-post="{{ post_url }}" hx-trigger="change" hx-swap="none" class="likert-scale"
+      x-data="{status: '', labels: {{ likert_labels | tojson }}}"
+      {% if sandbox %}@change="status = labels.find(p => p[0] == Number($event.target.value))[1] + ' (' + $event.target.value + ')'"{% endif %}
       hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')">
-  {% for v, lbl in [(1, 'Strongly disagree'), (2, 'Disagree'), (3, 'Neutral'), (4, 'Agree'), (5, 'Strongly agree')] %}
+  {% if sandbox %}
+    <input type="hidden" name="question_slug" value="{{ q.slug }}">
+    <input type="hidden" name="question_type" value="likert">
+  {% endif %}
+  {% for v, lbl in likert_labels %}
     <label>
-      <input type="radio" name="score" value="{{ v }}" {% if current == v %}checked{% endif %}>
+      <input type="radio" name="score" value="{{ v }}" data-testid="likert-{{ v }}" {% if current == v %}checked{% endif %}>
       <span>{{ lbl }}</span>
     </label>
   {% endfor %}
+  {% if sandbox %}
+    <small class="sandbox-status muted" data-testid="status-likert" x-text="status"></small>
+  {% endif %}
 </form>
 <small class="save-indicator muted" data-state=""></small>
