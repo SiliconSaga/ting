@@ -34,6 +34,13 @@ def test_validate_ranking_strips_blanks():
     assert payload == {"order": ["a", "b", "c"]}
 
 
+def test_validate_ranking_trims_whitespace_around_tokens():
+    payload, summary = validate_payload("ranking", {"order": " a , b ,c ,  d "})
+    assert payload == {"order": ["a", "b", "c", "d"]}
+    # The display summary should use the trimmed tokens too.
+    assert summary == "Order: a > b > c > d"
+
+
 def test_validate_nps_happy():
     payload, summary = validate_payload("nps", {"score": "7"})
     assert payload == {"score": 7}

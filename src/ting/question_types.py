@@ -100,7 +100,7 @@ def validate_payload(question_type: str, form: Mapping[str, Any]) -> tuple[dict,
     """
     if question_type == "ranking":
         raw_order = form.get("order", "")
-        order = [x for x in str(raw_order).split(",") if x.strip()]
+        order = [x.strip() for x in str(raw_order).split(",") if x.strip()]
         if not order:
             raise PayloadError("ranking: order is empty")
         return {"order": order}, "Order: " + " > ".join(order)
