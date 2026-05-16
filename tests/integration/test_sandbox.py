@@ -26,7 +26,7 @@ def test_sandbox_index_renders(client):
     # Section per registered question type — keyed off the data-testid the
     # template emits, so this test breaks loudly if the iteration ever
     # silently drops a type.
-    for slug in ("ranking", "nps", "likert"):
+    for slug in ("ranking", "nps", "likert", "checkboxes", "radio", "short_text", "long_text"):
         assert f'data-testid="section-{slug}"' in r.text
     # Activity log container + reset button
     assert 'id="sandbox-log"' in r.text
@@ -81,6 +81,73 @@ def test_echo_likert(client):
     )
     assert r.status_code == 200
     assert "Strongly agree" in r.text
+
+
+def test_echo_checkboxes(client):
+    r = client.post(
+        "/sandbox/echo",
+        data={"question_slug": "sandbox-checkboxes", "question_type": "checkboxes",
+              "selected": ["Newsletter", "Budget updates"]},
+    )
+    assert r.status_code == 200
+    assert "Newsletter" in r.text
+    assert "Budget updates" in r.text
+
+
+def test_echo_checkboxes_empty(client):
+    # Zero boxes ticked is still a valid emit.
+    r = client.post(
+        "/sandbox/echo",
+        data={"question_slug": "sandbox-checkboxes", "question_type": "checkboxes"},
+    )
+    assert r.status_code == 200
+    assert "Nothing selected" in r.text
+
+
+def test_echo_radio(client):
+    r = client.post(
+        "/sandbox/echo",
+        data={"question_slug": "sandbox-radio", "question_type": "radio", "choice": "Email"},
+    )
+    assert r.status_code == 200
+    assert "Email" in r.text
+
+
+def test_echo_radio_no_choice_rejected(client):
+    r = client.post(
+        "/sandbox/echo",
+        data={"question_slug": "sandbox-radio", "question_type": "radio"},
+    )
+    assert r.status_code == 400
+
+
+def test_echo_short_text(client):
+    r = client.post(
+        "/sandbox/echo",
+        data={"question_slug": "sandbox-short-text", "question_type": "short_text",
+              "text": "smaller class sizes"},
+    )
+    assert r.status_code == 200
+    assert "smaller class sizes" in r.text
+
+
+def test_echo_long_text(client):
+    r = client.post(
+        "/sandbox/echo",
+        data={"question_slug": "sandbox-long-text", "question_type": "long_text",
+              "text": "A longer paragraph of feedback."},
+    )
+    assert r.status_code == 200
+    assert "chars" in r.text
+
+
+def test_echo_long_text_over_cap_rejected(client):
+    r = client.post(
+        "/sandbox/echo",
+        data={"question_slug": "sandbox-long-text", "question_type": "long_text",
+              "text": "x" * 2001},
+    )
+    assert r.status_code == 400
 
 
 def test_echo_unknown_type_rejected(client):
