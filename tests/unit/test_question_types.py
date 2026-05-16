@@ -5,7 +5,9 @@ from ting.question_types import QUESTION_TYPES, PayloadError, validate_payload
 
 
 def test_registry_has_expected_types():
-    assert set(QUESTION_TYPES) == {"ranking", "nps", "likert"}
+    assert set(QUESTION_TYPES) == {
+        "ranking", "nps", "likert", "checkboxes", "radio", "short_text", "long_text",
+    }
 
 
 def test_registry_entries_point_at_real_partials():
@@ -73,6 +75,63 @@ def test_validate_likert_out_of_range():
         validate_payload("likert", {"score": "6"})
 
 
+def test_validate_checkboxes_happy():
+    payload, summary = validate_payload("checkboxes", {"selected": ["Email", "Texts"]})
+    assert payload == {"selected": ["Email", "Texts"]}
+    assert "Email" in summary and "Texts" in summary
+
+
+def test_validate_checkboxes_empty_is_valid():
+    # Zero selections is a legitimate answer ("none of these apply").
+    payload, summary = validate_payload("checkboxes", {"selected": []})
+    assert payload == {"selected": []}
+    assert summary == "Nothing selected"
+
+
+def test_validate_checkboxes_single_string_coerced():
+    # A plain dict may hold a lone string rather than a list.
+    payload, _ = validate_payload("checkboxes", {"selected": "Email"})
+    assert payload == {"selected": ["Email"]}
+
+
+def test_validate_radio_happy():
+    payload, summary = validate_payload("radio", {"choice": "Email"})
+    assert payload == {"choice": "Email"}
+    assert "Email" in summary
+
+
+def test_validate_radio_empty_rejected():
+    with pytest.raises(PayloadError):
+        validate_payload("radio", {"choice": ""})
+
+
+def test_validate_short_text_happy():
+    payload, summary = validate_payload("short_text", {"text": "  smaller classes  "})
+    assert payload == {"text": "smaller classes"}
+    assert "smaller classes" in summary
+
+
+def test_validate_short_text_empty_ok():
+    payload, summary = validate_payload("short_text", {"text": "   "})
+    assert payload == {"text": ""}
+    assert summary == "(empty)"
+
+
+def test_validate_short_text_over_cap_rejected():
+    with pytest.raises(PayloadError):
+        validate_payload("short_text", {"text": "x" * 201})
+
+
+def test_validate_long_text_happy():
+    payload, _ = validate_payload("long_text", {"text": "a longer thought"})
+    assert payload == {"text": "a longer thought"}
+
+
+def test_validate_long_text_over_cap_rejected():
+    with pytest.raises(PayloadError):
+        validate_payload("long_text", {"text": "x" * 2001})
+
+
 def test_validate_unknown_type():
     with pytest.raises(PayloadError):
-        validate_payload("freetext", {"text": "hello"})
+        validate_payload("essay", {"text": "hello"})

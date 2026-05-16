@@ -1,0 +1,20 @@
+{# src/ting/templates/survey/_short_text.html #}
+{% set ans = existing.get(q.question_id, {}) %}
+{% set current = ans.get('text', '') %}
+{% set post_url = '/sandbox/echo' if sandbox else '/respond/' ~ q.slug %}
+<form data-testid="widget-short-text" data-question-slug="{{ q.slug }}"
+      hx-post="{{ post_url }}" hx-trigger="change" hx-swap="none"
+      {% if sandbox %}hx-on:change="this.querySelector('.sandbox-status').textContent = event.target.value.trim() ? 'Entered: ' + event.target.value.trim() : 'Cleared.'"
+      {% else %}hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')"{% endif %}>
+  {% if sandbox %}
+    <input type="hidden" name="question_slug" value="{{ q.slug }}">
+    <input type="hidden" name="question_type" value="short_text">
+  {% endif %}
+  {# maxlength mirrors question_types.SHORT_TEXT_MAX; the server-side check is the real guard. #}
+  <input type="text" name="text" maxlength="200" value="{{ current }}"
+         data-testid="short-text-input" placeholder="{{ q.payload.get('placeholder', 'Short answer') }}">
+  {% if sandbox %}
+    <small class="sandbox-status muted" data-testid="status-short-text">Type something, then click away to emit.</small>
+  {% endif %}
+</form>
+{% if not sandbox %}<small class="save-indicator muted" data-state=""></small>{% endif %}

@@ -289,6 +289,35 @@ code {
 .save-indicator[data-state="saved"]::before { content: "Saved \2713"; color: var(--success); }
 .save-indicator[data-state="error"]::before { content: "Couldn't save \2014 try again"; color: var(--danger); }
 
+/* Checkbox / radio choice lists (Google-Form-style widgets). */
+.choice-list { display: flex; flex-direction: column; gap: 0.35rem; }
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-input);
+  cursor: pointer;
+}
+.choice:hover { background: var(--bg-elevated); }
+.choice input { margin: 0; flex-shrink: 0; }
+.choice:has(input:checked) { border-color: var(--accent); }
+
+textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--fg);
+  resize: vertical;
+}
+textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
 /* === Survey list (picker) === */
 .survey-list { display: grid; gap: 0.75rem; margin: 1rem 0; }
 .survey-card {
