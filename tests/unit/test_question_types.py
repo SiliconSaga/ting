@@ -94,6 +94,21 @@ def test_validate_checkboxes_single_string_coerced():
     assert payload == {"selected": ["Email"]}
 
 
+def test_validate_checkboxes_getlist_form_object_dedups():
+    # Real requests pass a Starlette FormData (getlist); also covers the
+    # order-preserving de-duplication of repeated values.
+    class _FormLike:
+        def getlist(self, key):
+            return ["Email", "Email", "Texts"] if key == "selected" else []
+
+        def get(self, key, default=None):
+            return default
+
+    payload, summary = validate_payload("checkboxes", _FormLike())
+    assert payload == {"selected": ["Email", "Texts"]}
+    assert summary == "Selected: Email, Texts"
+
+
 def test_validate_radio_happy():
     payload, summary = validate_payload("radio", {"choice": "Email"})
     assert payload == {"choice": "Email"}

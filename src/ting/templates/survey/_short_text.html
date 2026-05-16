@@ -12,6 +12,7 @@
   {% endif %}
   {# maxlength mirrors question_types.SHORT_TEXT_MAX; the server-side check is the real guard. #}
   <input type="text" name="text" maxlength="200" value="{{ current }}"
+         aria-label="{{ q.prompt }}"
          data-testid="short-text-input" placeholder="{{ q.payload.get('placeholder', 'Short answer') }}">
   {% if sandbox %}
     <small class="sandbox-status muted" data-testid="status-short-text">Type something, then click away to emit.</small>

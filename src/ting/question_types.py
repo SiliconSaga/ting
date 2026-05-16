@@ -201,7 +201,13 @@ def validate_payload(question_type: str, form: Mapping[str, Any]) -> tuple[dict,
         else:
             v = form.get("selected", [])
             raw = v if isinstance(v, list) else [v]
-        selected = [str(x).strip() for x in raw if str(x).strip()]
+        # De-duplicate (order-preserving) — checkbox semantics are a set, and
+        # a client could post a value twice.
+        selected: list[str] = []
+        for x in raw:
+            v = str(x).strip()
+            if v and v not in selected:
+                selected.append(v)
         # Zero selections is a valid answer ("none of these apply").
         summary = "Selected: " + ", ".join(selected) if selected else "Nothing selected"
         return {"selected": selected}, summary

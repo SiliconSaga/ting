@@ -11,7 +11,7 @@
     <input type="hidden" name="question_type" value="long_text">
   {% endif %}
   {# maxlength mirrors question_types.LONG_TEXT_MAX; the server-side check is the real guard. #}
-  <textarea name="text" maxlength="2000" rows="4"
+  <textarea name="text" maxlength="2000" rows="4" aria-label="{{ q.prompt }}"
             data-testid="long-text-input" placeholder="{{ q.payload.get('placeholder', 'Longer answer') }}">{{ current }}</textarea>
   {% if sandbox %}
     <small class="sandbox-status muted" data-testid="status-long-text">Type something, then click away to emit.</small>
