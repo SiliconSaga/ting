@@ -1,0 +1,9 @@
+{# Rendered by /sandbox/echo. The OOB swap targets the activity log list. #}
+<ol id="sandbox-log" hx-swap-oob="afterbegin" data-testid="sandbox-log">
+  <li class="sandbox-log-entry" data-testid="log-entry"
+      data-question-slug="{{ question_slug }}" data-question-type="{{ question_type }}">
+    <span class="sandbox-log-time">{{ timestamp }}</span>
+    <span class="sandbox-log-slug">{{ question_slug }}</span>
+    <span class="sandbox-log-summary">{{ summary }}</span>
+  </li>
+</ol>

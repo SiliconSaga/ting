@@ -488,3 +488,84 @@ blockquote.endorsed-comment footer {
   header, footer, form, .breadcrumb, .nav-tabs, .theme-toggle, .no-print { display: none; }
   .hero, .about-banner, .error-page { background: none; }
 }
+
+/* --- Sandbox -------------------------------------------------------- */
+
+/* The sandbox shows several widgets side-by-side with an activity log;
+   the default 720px `main` cap squeezes them into an unusable column. */
+main.main-wide { max-width: min(1600px, 94vw); }
+
+.sandbox-intro { margin-bottom: 1.5rem; }
+.sandbox-intro h1 { margin-bottom: 0.5rem; }
+
+.sandbox-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .sandbox-layout { grid-template-columns: 1fr; }
+}
+
+.sandbox-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.sandbox-section h2 { margin-top: 0; }
+.sandbox-section h3 { margin: 0.5rem 0 0.75rem; }
+
+.sandbox-status {
+  display: block;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.sandbox-log-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.sandbox-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.sandbox-log-header h2 { margin: 0; }
+
+.sandbox-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+.sandbox-log:empty::before {
+  content: 'No emits yet. Try one of the widgets.';
+  color: var(--muted);
+  font-style: italic;
+  font-family: inherit;
+}
+.sandbox-log-entry {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.5rem;
+  row-gap: 0.1rem;
+}
+.sandbox-log-entry:last-child { border-bottom: none; }
+.sandbox-log-time { color: var(--muted); }
+.sandbox-log-slug { color: var(--accent); font-weight: 600; }
+.sandbox-log-summary { grid-column: 1 / -1; }
+

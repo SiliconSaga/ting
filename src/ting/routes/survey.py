@@ -25,6 +25,7 @@ from ..models import (
     Response,
     Survey,
 )
+from ..question_types import PayloadError, validate_payload
 from ..ratelimit import allow_write
 from ..valkey import get_valkey
 
@@ -169,22 +170,10 @@ async def respond(question_slug: str, request: Request) -> HTMLResponse:
         if q is None:
             raise HTTPException(404, "question not found")
 
-        if q.type == "ranking":
-            raw_order = form.get("order", "")
-            order = [x for x in str(raw_order).split(",") if x.strip()]
-            payload = {"order": order}
-        elif q.type == "nps":
-            score = int(form.get("score", -1))
-            if not 0 <= score <= 10:
-                raise HTTPException(400, "score out of range")
-            payload = {"score": score}
-        elif q.type == "likert":
-            score = int(form.get("score", -1))
-            if not 1 <= score <= 5:
-                raise HTTPException(400, "score out of range")
-            payload = {"score": score}
-        else:
-            raise HTTPException(400, "unknown question type")
+        try:
+            payload, _ = validate_payload(q.type, form)
+        except PayloadError as e:
+            raise HTTPException(400, str(e)) from None
 
         stmt = pg_insert(Response).values(
             code_id=code_id, question_id=q.question_id, payload=payload,

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Sandbox{% endblock %}
+{% block main_class %}main-wide{% endblock %}
+{% block extra_head %}
+<meta name="robots" content="noindex,nofollow">
+{% endblock %}
+{% block main %}
+<section class="sandbox-intro">
+  <h1>Sandbox</h1>
+  <p class="muted">
+    Try every question type ting supports. Clicks emit a status label and append a row to the activity log on the right — <strong>nothing is saved</strong>. Use this to preview the widgets before sending a real cohort their codes, or to demo what a respondent experiences without persisting test data.
+  </p>
+  <p class="muted">
+    Got a real code? Head to <a href="/">the start page</a> to take the actual survey.
+  </p>
+</section>
+
+<div class="sandbox-layout">
+  <div class="sandbox-sections">
+    {% for section in sections %}
+      {% set qt = section.type %}
+      {% set q = section.q %}
+      <article class="sandbox-section" data-testid="section-{{ qt.slug }}">
+        <h2>{{ qt.label }}</h2>
+        <p class="muted">{{ qt.description }}</p>
+        <h3>{{ q.prompt }}</h3>
+        {% include qt.partial %}
+      </article>
+    {% endfor %}
+  </div>
+
+  <aside class="sandbox-log-panel" aria-label="Activity log">
+    <div class="sandbox-log-header">
+      <h2>Activity log</h2>
+      <button type="button" class="secondary" data-testid="sandbox-reset"
+              onclick="document.getElementById('sandbox-log').innerHTML = '';">
+        Reset
+      </button>
+    </div>
+    <p class="muted">Newest at top. Capped at ~50 entries.</p>
+    <ol id="sandbox-log" data-testid="sandbox-log" class="sandbox-log"></ol>
+  </aside>
+</div>
+
+<script>
+// Cap the activity log at 50 entries so a long sandbox session doesn't
+// grow unbounded in the DOM.
+document.addEventListener('htmx:afterSwap', function () {
+  var log = document.getElementById('sandbox-log');
+  if (!log) return;
+  while (log.children.length > 50) log.removeChild(log.lastElementChild);
+});
+</script>
+{% endblock %}
