@@ -5,9 +5,8 @@
 <p class="muted">{{ q.payload.subject }} — 0 = not at all, 10 = extremely likely</p>
 <form data-testid="widget-nps" data-question-slug="{{ q.slug }}"
       hx-post="{{ post_url }}" hx-trigger="change" hx-swap="none" class="nps-scale"
-      x-data="{status: ''}"
-      {% if sandbox %}@change="status = 'Chose ' + $event.target.value + '/10'"{% endif %}
-      hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')">
+      {% if sandbox %}hx-on:change="this.querySelector('.sandbox-status').textContent = 'Chose ' + event.target.value + '/10'"
+      {% else %}hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')"{% endif %}>
   {% if sandbox %}
     <input type="hidden" name="question_slug" value="{{ q.slug }}">
     <input type="hidden" name="question_type" value="nps">
@@ -19,7 +18,7 @@
     </label>
   {% endfor %}
   {% if sandbox %}
-    <small class="sandbox-status muted" data-testid="status-nps" x-text="status"></small>
+    <small class="sandbox-status muted" data-testid="status-nps">Pick a number above to emit.</small>
   {% endif %}
 </form>
-<small class="save-indicator muted" data-state=""></small>
+{% if not sandbox %}<small class="save-indicator muted" data-state=""></small>{% endif %}

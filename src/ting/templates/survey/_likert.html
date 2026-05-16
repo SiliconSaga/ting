@@ -6,9 +6,8 @@
 <p>{{ q.payload.statement }}</p>
 <form data-testid="widget-likert" data-question-slug="{{ q.slug }}"
       hx-post="{{ post_url }}" hx-trigger="change" hx-swap="none" class="likert-scale"
-      x-data="{status: '', labels: {{ likert_labels | tojson }}}"
-      {% if sandbox %}@change="status = labels.find(p => p[0] == Number($event.target.value))[1] + ' (' + $event.target.value + ')'"{% endif %}
-      hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')">
+      {% if sandbox %}hx-on:change="this.querySelector('.sandbox-status').textContent = event.target.closest('label').querySelector('span').textContent + ' (' + event.target.value + ')'"
+      {% else %}hx-on::after-request="this.nextElementSibling.dataset.state = (event.detail.successful ? 'saved' : 'error')"{% endif %}>
   {% if sandbox %}
     <input type="hidden" name="question_slug" value="{{ q.slug }}">
     <input type="hidden" name="question_type" value="likert">
@@ -20,7 +19,7 @@
     </label>
   {% endfor %}
   {% if sandbox %}
-    <small class="sandbox-status muted" data-testid="status-likert" x-text="status"></small>
+    <small class="sandbox-status muted" data-testid="status-likert">Pick an option above to emit.</small>
   {% endif %}
 </form>
-<small class="save-indicator muted" data-state=""></small>
+{% if not sandbox %}<small class="save-indicator muted" data-state=""></small>{% endif %}

@@ -59,6 +59,29 @@ def test_respond_likert_persists(client):
     assert re.search(r'data-testid="likert-4"[^>]*\schecked', r2.text), r2.text[:500]
 
 
+def test_respond_ranking_persists(client):
+    # Regression guard: the ranking widget previously posted an empty
+    # `order` because the hidden input was outside the Alpine x-data
+    # scope. This exercises the backend contract — a non-empty order
+    # must round-trip into the re-rendered survey page.
+    _redeem(client)
+    order = "security-coordinator,retain-paras,hvac-maintenance,cooperative-purchasing"
+    r = client.post("/respond/rank-priorities", data={"order": order})
+    assert r.status_code == 200
+    r2 = client.get("/survey/spring-pilot-general")
+    # First item in the persisted order should render first in the list.
+    assert "security-coordinator" in r2.text
+    pos_first = r2.text.index("security-coordinator")
+    pos_second = r2.text.index("retain-paras")
+    assert pos_first < pos_second, "persisted ranking order did not round-trip"
+
+
+def test_respond_ranking_empty_order_rejected(client):
+    _redeem(client)
+    r = client.post("/respond/rank-priorities", data={"order": ""})
+    assert r.status_code == 400
+
+
 def test_respond_unauth(client):
     r = client.post("/respond/agree-supp-funding", data={"score": 4})
     assert r.status_code == 401

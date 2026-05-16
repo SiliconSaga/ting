@@ -3,35 +3,40 @@
 {% set current_order = ans.get('order') or q.payload.get('proposal_slugs', []) %}
 {% set post_url = '/sandbox/echo' if sandbox else '/respond/' ~ q.slug %}
 <p class="muted">Drag the items to reorder. Most important at the top.</p>
+{# Plain DOM, no Alpine reactive state: the SortableJS onEnd handler writes
+   the order straight into the hidden input and fires the HTMX trigger via
+   htmx.trigger(). An earlier Alpine-bound version silently failed because
+   the hidden input fell outside the x-data scope. #}
 <form data-testid="widget-ranking" data-question-slug="{{ q.slug }}"
       hx-post="{{ post_url }}" hx-trigger="reorder, submit" hx-swap="none"
-      hx-on::after-request="this.parentElement.querySelector('.save-indicator').dataset.state = (event.detail.successful ? 'saved' : 'error'); if (event.detail.successful) { const b = this.querySelector('.confirm-default'); if (b) b.remove(); }">
+      {% if not sandbox %}hx-on::after-request="this.parentElement.querySelector('.save-indicator').dataset.state = (event.detail.successful ? 'saved' : 'error'); if (event.detail.successful) { const b = this.querySelector('.confirm-default'); if (b) b.remove(); }"{% endif %}>
   {% if sandbox %}
     <input type="hidden" name="question_slug" value="{{ q.slug }}">
     <input type="hidden" name="question_type" value="ranking">
   {% endif %}
-  <ul x-data="{order: {{ current_order | tojson }}}"
-      x-init="$nextTick(() => new Sortable($el, {
-        animation: 150, onEnd: () => {
-          order = [...$el.children].map(li => li.dataset.slug);
+  <ul x-data x-init="$nextTick(() => new Sortable($el, {
+        animation: 150,
+        onEnd: () => {
           const form = $el.closest('form');
-          form.dispatchEvent(new Event('reorder'));
+          const order = [...$el.children].map(li => li.dataset.slug);
+          form.querySelector('input[name=order]').value = order.join(',');
           {% if sandbox %}
-            const s = form.querySelector('[data-testid=&quot;status-ranking&quot;]');
-            if (s) s.textContent = 'Order: ' + order.join(' › ');
+          const s = form.querySelector('.sandbox-status');
+          if (s) s.textContent = 'Order: ' + order.join(' > ');
           {% endif %}
+          htmx.trigger(form, 'reorder');
         }
       }))">
     {% for slug in current_order %}
       <li class="rank-item" data-slug="{{ slug }}" data-testid="rank-item-{{ slug }}">{{ slug }}</li>
     {% endfor %}
   </ul>
-  <input type="hidden" name="order" :value="order.join(',')">
-  {% if not existing.get(q.question_id) %}
+  <input type="hidden" name="order" value="{{ current_order | join(',') }}">
+  {% if not sandbox and not existing.get(q.question_id) %}
     <button type="submit" class="confirm-default secondary">That order looks right — save it</button>
   {% endif %}
   {% if sandbox %}
-    <small class="sandbox-status muted" data-testid="status-ranking"></small>
+    <small class="sandbox-status muted" data-testid="status-ranking">Drag an item above to emit.</small>
   {% endif %}
 </form>
-<small class="save-indicator muted" data-state=""></small>
+{% if not sandbox %}<small class="save-indicator muted" data-state=""></small>{% endif %}
